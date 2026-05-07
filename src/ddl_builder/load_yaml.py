@@ -1,9 +1,16 @@
 import yaml
-from pathlib import Path
+def read_yaml(filepath:PosixPath)->Dict:
+    """_Read YAML file from path._
 
-def read_files(filepath:str)->object:
-    path = Path(filepath)
-    assert path.exists(), f"The path provided ({filepath}) is not a valid path/file/directory."
-    assert path.is_dir(), "The path provided to read_files must be a directory."
-    file_list = [child for child in path.iterdir()]
-    return file_list
+    Args:
+        filepath (PosixPath): _A valid file path pointing to a YAML database definition file._
+
+    Returns:
+        object: _The YAML object rendered as a python Dict._
+    """    
+    with open(filepath, 'r') as fp:
+        try:
+            yaml_object = yaml.safe_load(fp)
+        except yaml.YAMLError as exc:
+            print(exc)
+    return yaml_object
