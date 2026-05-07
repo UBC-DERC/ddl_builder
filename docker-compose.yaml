@@ -1,0 +1,95 @@
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-appdb}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    ports:
+      - "5435:5432"
+
+  db-restore:
+    image: postgis/postgis:18-3.6 # matching version is important
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER:-appuser}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      PGDATABASE: ${POSTGRES_DB:-appdb}
+      S3_DUMP_URL: ${S3_DUMP_URL} # e.g. https://bucket.s3.amazonaws.com/dump.zip
+      DUMP_FILENAME: ${DUMP_FILENAME:-dump.sql} # filename inside the zip
+    volumes:
+      - ./clean_database/db_restore.sh:/restore.sh:ro
+      - restore_status:/restore_status # used to skip restore if already done
+      - restore_cache:/restore_cache # add this
+    command: [ "bash", "/restore.sh" ]
+    restart: "no" # run once only
+
+  ddl-build:
+    build:
+      context: ./api_nodetest
+      dockerfile: api_nodetest.Dockerfile
+      args:
+        REPO_URL: ${API1_REPO_URL}
+        NODE_ENV: production
+    depends_on:
+      db-restore:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      RDS_HOSTNAME: postgres
+      RDS_PORT: 5432
+      RDS_DATABASE: ${RDS_DATABASE:-neotoma}
+      RDS_USERNAME: ${POSTGRES_USER:-appuser}
+      RDS_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      APIPORT: 3001
+      LOCALLIMIT: false
+      NATIVELANDKEY: ${NATIVELANDKEY}
+      SSLCERT: false
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+  api2:
+    build:
+      context: ./tilia_api
+      dockerfile: tilia_api.Dockerfile
+      args:
+        REPO_URL: ${API2_REPO_URL}
+        NODE_ENV: production
+    depends_on:
+      db-restore:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      RDS_HOSTNAME: postgres
+      RDS_PORT: 5432
+      RDS_DATABASE: ${RDS_DATABASE:-neotoma}
+      RDS_USERNAME: ${POSTGRES_USER:-appuser}
+      RDS_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      SSLCERT: false
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  restore_status:
+  restore_cache:
