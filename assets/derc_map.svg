@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="268.23306"
+   height="240.02992"
+   viewBox="0 0 268.23306 240.02991"
+   sodipodi:docname="derc_map.svg"
+   inkscape:version="1.4.3 (fcd0343856, 2026-01-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath8">
+      <path
+         d="m 542.00001,371.52301 h 1.5 v 3 h -1.5 z"
+         id="path8" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath10">
+      <path
+         d="m 470.75001,374.52301 h 71.25 v 1.5 h -71.25 z"
+         id="path10" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath12">
+      <path
+         d="m 469.25001,371.52301 h 1.5 v 3 h -1.5 z"
+         id="path12" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath14">
+      <path
+         d="M 36.000001,85.500002 H 560.00001 V 366.00001 H 36.000001 Z"
+         id="path14" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="3.2975056"
+     inkscape:cx="157.84659"
+     inkscape:cy="141.47057"
+     inkscape:window-width="3840"
+     inkscape:window-height="2083"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1">
+    <inkscape:page
+       x="4.8304964e-06"
+       y="1.1699856e-06"
+       inkscape:label="1"
+       id="page1"
+       width="268.23306"
+       height="240.02991"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <g
+     id="g1"
+     inkscape:groupmode="layer"
+     inkscape:label="1"
+     transform="translate(-345.26099,-126.91413)">
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 447.00455,351.32617 1.21304,-15.46624 4.39727,0.15163 0.15163,-3.94237 42.00144,4.70052 0.45489,-8.188 18.80209,2.27444 -2.27445,27.74825 z"
+       id="path76"
+       inkscape:label="calf_barn" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 512.20535,311.29591 27.14173,-27.74825 -23.9575,-23.04772 21.53143,-22.89609 -34.26833,-33.20692 -11.97875,13.04016 -6.52008,-6.06519 18.80209,-18.8021 -32.14551,-29.87106 -42.15308,44.73078 33.05529,32.6004 -1.5163,1.5163 3.33586,3.79074 -30.78084,33.66181 34.26832,33.05529 21.22817,-23.65424 z"
+       id="path77"
+       inkscape:label="main_barn" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 435.17743,244.73044 10.91735,-10.76571 -29.11292,-28.5064 -10.31082,11.06898 z"
+       id="path78"
+       inkscape:label="hiefer_barn" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 379.68094,230.93214 36.08788,-36.08789 -23.9575,-23.80587 -34.72322,36.6944 z"
+       id="path79" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 406.67104,155.26888 23.35098,22.8961 27.59662,-29.71944 -22.59284,-21.53142 z"
+       id="path80" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 529.64278,263.38091 23.04772,-24.86729 16.67928,16.07276 -24.4124,24.56402 z"
+       id="path81" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 571.18933,282.78952 17.2858,16.98253 11.06897,-11.37223 -14.2532,-15.01135 -1.97119,2.12282 -1.81955,-1.5163 z"
+       id="path82" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 545.71553,331.6143 18.49883,2.12282 3.18423,-33.20692 -17.74068,-1.81956 z"
+       id="path83" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 544.35086,345.26098 -2.5777,19.25698 13.64668,2.42608 2.27444,-20.77328 z"
+       id="path84" />
+    <circle
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       id="path85"
+       cx="393.85831"
+       cy="250.644"
+       r="14.329013"
+       inkscape:label="manure_tank" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 405.91289,265.04883 13.49505,-14.55645 7.42986,6.82334 -13.94994,14.55645 z"
+       id="path86" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 587.11046,352.53921 7.42986,1.36467 1.36467,-5.30704 9.7043,1.51629 7.88475,-1.66792 -6.36845,-22.44121 2.72933,-25.01891 -6.67171,-1.5163 -15.76949,7.42986 4.54889,14.40483 z"
+       id="path87" />
+    <path
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       d="m 345.26098,331.46267 1.66793,-21.07654 24.71565,2.57771 4.39726,-18.19557 12.7369,1.21304 2.27445,13.94993 19.71187,2.12282 -3.79074,31.84225 -48.06664,-6.06519 0.15163,-3.48748 z"
+       id="path88"
+       inkscape:label="feed_mill" />
+  </g>
+</svg>

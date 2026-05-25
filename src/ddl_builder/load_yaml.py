@@ -1,5 +1,7 @@
 import yaml
-def read_yaml(filepath:PosixPath)->Dict:
+from pathlib import Path
+
+def read_yaml(filepath:Path)->dict:
     """_Read YAML file from path._
 
     Args:
