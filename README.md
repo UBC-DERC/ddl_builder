@@ -41,3 +41,6 @@ flowchart LR
 
 At the end of deployment we should have a database (that can be created and destroyed) that has been built without errors, and a log of the build process written to the user's directory.
 
+## Testing
+
+Tests use `pytest` with an HTML report written to `docs/test_report.html` to provide ongoing oversight of the project and potential issues.
