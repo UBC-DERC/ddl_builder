@@ -8,6 +8,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pathlib>=1.0.1",
     "psycopg[binary]>=3.3.4",
+    "pytest-html>=4.2.0",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0.3",
 ]
@@ -24,3 +25,7 @@ dev = [
     "coverage>=7.14.0",
     "pytest>=9.0.3",
 ]
+
+[tool.pytest.ini_options]
+generate_report_on_test = true
+addopts = "--html=docs/test_report.html"
