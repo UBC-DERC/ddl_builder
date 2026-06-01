@@ -19,7 +19,9 @@ def create_cows(connection, request):
                         extensions = ['pg_trgm'],
                         server = connection)
     db.create()
+    assert db.check(), "The database wasn't created properly."
     def delete_db():
         db.drop()
+        assert db.check() is False, "The database wasn't deleted properly."
     request.addfinalizer(delete_db)
     return db
