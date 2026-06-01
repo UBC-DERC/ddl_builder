@@ -10,3 +10,4 @@ if result.check():
                               extensions = [],
                               server = result)
     database.check()
+    database.create()

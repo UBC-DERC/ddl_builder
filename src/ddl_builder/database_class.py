@@ -1,37 +1,132 @@
-from psycopg import sql
+from psycopg import sql, DatabaseError
 from dataclasses import dataclass
 from .server_class import Cownection
+from .schema_class import schema as sch
 
 @dataclass
 class d3database():
     server: Cownection
-    name: str
+    schema: dict
+    dbname: str
     comment: str
     owner: str
     extensions: list
     encoding: str
     locale: str
-    def __init__(self, name, comment, owner, extensions, encoding = 'UTF8', locale = 'en_CA', server = None):
-        self.name = name
+    def __init__(self, dbname, comment, owner, extensions, encoding = 'UTF8', locale = 'en_CA', server = None):
+        self.dbname = dbname
         self.comment = comment
         self.owner = owner
+        self.schema = []
         self.extensions = extensions
         self.encoding = encoding
         self.locale = locale
         self.server = server
     def check(self):
         if self.server:
-            db = self.server.conn.connect()
+            db = self.server.conn
+            if not db:
+                self.server.connect(dbname="postgres")
+                db = self.server.conn
             query = sql.SQL("SELECT datname FROM pg_catalog.pg_database WHERE datname=%s")
             with db.cursor() as cur:
-                cur.execute(query, (self.name,))
+                cur.execute(query, (self.dbname,))
                 result = cur.fetchone()
-            if len(result) > 0:
+            if result:
+                db.commit()
                 return True
-            else: return False
-    def create(self):
-        query = sql.SQL("CREATE DATABASE {name} WITH OWNER = %s LOCALE = %s ENCODING = %s").format(
-            name = sql.Identifier(self.name))
-        with self.server.conn.cursor() as cur:
-                cur.execute(query, (self.owner, self.locale, self.encoding, ))
+            else: 
+                db.commit()
+                return False
+    def create(self, switch:bool = True):
+        self.server.connect()
+        # Have to set template0 here to allow new encodings and locales. If we use the
+        # default template1 (excluding the `TEMPLATE` parameter) we get an error.
+        query = sql.SQL("""
+                    CREATE DATABASE {} WITH
+                        OWNER = {}
+                        LOCALE = {}
+                        ENCODING = {}
+                        TEMPLATE = 'template0'
+                        """).format(
+            sql.Identifier(self.dbname), sql.Identifier(self.owner), sql.Identifier(self.locale), sql.Identifier(self.encoding))
+        # CREATE DATABASE cannot operate within a transaction, so we turn autocommit on and off.
+        try:
+            if not self.check():
+                self.server.conn.autocommit = True
+                with self.server.conn.cursor() as cur:
+                        cur.execute(query)
+                self.server.conn.autocommit = False
+                print(f"Created database {self.dbname} on the current server:\n{self.server.conn}")
+            else:
+                print(f"Database {self.dbname} already exists on the current server:\n{self.server.conn}")
+        except Exception as e:
+            self.server.conn.rollback()
+            self.server.conn.autocommit = False
+            print(e)
         self.check()
+    def add_extensions(self, extension:str = None):
+        if not extension:
+            self.extensions.append(extension)
+        if self.server.conn is None:
+            self.server.connect()
+        if self.check():
+            extensions = """SELECT extname FROM pg_extension;"""
+            with self.server.conn.cursor() as cur:
+                _ = cur.execute(extensions)
+                ext = cur.fetchall()
+            new_ext = [i for i in self.extensions if i not in ext]
+            for j in new_ext:
+                query = sql.SQL("""
+                                CREATE EXTENSION IF NOT EXISTS {}
+                                """).format(
+                                    sql.Identifier(j)
+                                )
+                with self.server.conn.cursor() as cur:
+                    cur.execute(query)
+            self.server.conn.commit()
+    def add_schema(self, dbSchema:sch, create:bool = True):
+        self.server.connect()
+        self.schema.append(dbSchema)
+        if self.check() and create:
+            newSchema = sql.SQL("""CREATE SCHEMA IF NOT EXISTS {};""").format(sql.Identifier(dbSchema.name))
+            with self.server.conn.cursor() as cur:
+                _ = cur.execute(newSchema)
+            self.server.conn.commit()
+        elif not self.check():
+            raise DatabaseError(f"Cannot connect to {self.server.connstring}")
+    def drop_schema(self, dbSchema:sch):
+        self.server.connect()
+        if self.check():
+            dropSchema = sql.SQL("""DROP SCHEMA IF EXISTS {};""").format(sql.Indentifier(dbSchema.name))
+            try:
+                with self.server.conn.cursor() as cur:
+                        _ = cur.execute(dropSchema)
+                self.server.conn.commit()
+            except DatabaseError:
+                print("Database error.")
+    def drop(self):
+        # We need to switch out of wherever we are.
+        if self.server.conn.info.dbname == 'postgres':
+            raise ValueError("You cannot drop a database when you are connected to the defauly 'postgres' database.")
+        self.server.connect(dbname='postgres')
+        query = sql.SQL("""
+                    DROP DATABASE IF EXISTS {}
+                        """).format(
+            sql.Identifier(self.dbname))
+        # CREATE DATABASE cannot operate within a transaction, so we turn autocommit on and off.
+        try:
+            if self.check():
+                self.server.conn.autocommit = True
+                with self.server.conn.cursor() as cur:
+                        cur.execute(query)
+                self.server.conn.autocommit = False
+                print(f"Removed database {self.dbname} on the current server:\n{self.conn}")
+            else:
+                print(f"Database {self.name} did not exist on the current server:\n{self.conn}")
+        except Exception as e:
+            self.server.conn.rollback()
+            self.server.conn.autocommit = False
+            print(e)
+        self.check()
+        
