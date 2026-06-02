@@ -10,6 +10,10 @@ class Cownection:
        The connection assumes that we have a database server running somewhere. The
        `Cownection` class is simply a class to help manage our connections and ensure
        that they are functioning as expected.
+
+       Some things to keep in mind, we should always be able to access the base `postgres`
+       database, but should also support switching between databases (if we start in postgres and
+       then create the new database).
     """    
     dbname: str
     port: int
@@ -17,45 +21,38 @@ class Cownection:
     password: str
     host: str
     conn: psycopg.Connection
-    connstring:dict
-    def __init__(self, connstring:dict = None):
+    def __init__(self):
         load_dotenv()
         self.dbname = environ.get('dbname')
         self.port = environ.get('port')
         self.user = environ.get('user')
         self.host = environ.get('host')
         self.password = environ.get('password')
-        if not connstring:
-            self.connstring = {'dbname': self.dbname,
-                            'port': self.port,
-                            'user': self.user,
-                            'password': self.password,
-                            'host': self.host}
-        else:
-            if not type(connstring) is dict:
-                raise TypeError("Your connection string must be a dict.")
-            self.connstring = connstring
         self.conn = None
-    def check(self):
+    def connstring(self, dbname:str = None):
+        return {'dbname': dbname or self.dbname,
+                'port': self.port,
+                'user': self.user,
+                'password': self.password,
+                'host': self.host}
+    def check(self, dbname:str = None):
         """_Check that our connection to the database is valid._
 
         Returns:
             _type_: _description_
         """        
         try:
-            conn = psycopg.connect(**self.connstring)
+            conn = psycopg.connect(**self.connstring())
         except psycopg.ProgrammingError as e:
             raise psycopg.ProgrammingError(f"Your connection string is likely malformed. Check that {self.connstring} meets the requirements.\n{e}")
         if not conn.broken:
             return True
         return False
-    def connect(self, dbname = None):
-        if dbname:
-            self.connstring['dbname'] = dbname
+    def connect(self, dbname:str = None):
         if self.conn:
             if not self.conn.closed:
                 self.conn.close()
-        self.conn = psycopg.connect(**self.connstring, row_factory = dict_row)
+        self.conn = psycopg.connect(**self.connstring(dbname), row_factory = dict_row)
     def close(self):
         if not self.conn.closed:
             self.conn.close()
