@@ -42,9 +42,9 @@ class Cownection:
             _type_: _description_
         """        
         try:
-            conn = psycopg.connect(**self.connstring())
+            conn = psycopg.connect(**self.connstring(dbname))
         except psycopg.ProgrammingError as e:
-            raise psycopg.ProgrammingError(f"Your connection string is likely malformed. Check that {self.connstring} meets the requirements.\n{e}")
+            raise psycopg.ProgrammingError(f"Your connection string is likely malformed. Check that {self.connstring()} meets the requirements.\n{e}")
         if not conn.broken:
             return True
         return False

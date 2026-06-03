@@ -1,5 +1,5 @@
-from psycopg import sql, DatabaseError
-from dataclasses import dataclass
+from psycopg import sql, DatabaseError, connect
+from dataclasses import dataclass, field
 from .server_class import Cownection
 from .schema_class import schema as sch
 
@@ -23,6 +23,11 @@ class d3database():
         self.locale = locale
         self.server = server
     def check(self):
+        """_Check that a database actually exists on the server with the current settings._
+
+        Returns:
+            _bool_: _Did the operation work?_
+        """        
         if self.server:
             db = self.server.conn
             if not db:
@@ -33,13 +38,13 @@ class d3database():
                 cur.execute(query, (self.dbname,))
                 result = cur.fetchone()
             if result:
-                db.commit()
-                return True
+                outcome = True
             else: 
-                db.commit()
-                return False
+                outcome = False
+            db.commit()
+            return outcome
     def create(self, switch:bool = True):
-        self.server.connect()
+        self.server.connect(dbname = 'postgres')
         # Have to set template0 here to allow new encodings and locales. If we use the
         # default template1 (excluding the `TEMPLATE` parameter) we get an error.
         query = sql.SQL("""
@@ -57,6 +62,7 @@ class d3database():
                 with self.server.conn.cursor() as cur:
                         cur.execute(query)
                 self.server.conn.autocommit = False
+                self.server.dbname = self.dbname
                 print(f"Created database {self.dbname} on the current server:\n{self.server.conn}")
             else:
                 print(f"Database {self.dbname} already exists on the current server:\n{self.server.conn}")
@@ -64,12 +70,13 @@ class d3database():
             self.server.conn.rollback()
             self.server.conn.autocommit = False
             print(e)
+        self.connect()
         self.check()
     def add_extensions(self, extension:str = None):
         if not extension:
             self.extensions.append(extension)
         if self.server.conn is None:
-            self.server.connect()
+            self.connect()
         if self.check():
             extensions = """SELECT extname FROM pg_extension;"""
             with self.server.conn.cursor() as cur:
@@ -86,17 +93,37 @@ class d3database():
                     cur.execute(query)
             self.server.conn.commit()
     def add_schema(self, dbSchema:sch, create:bool = True):
-        self.server.connect()
+        self.connect()
+        exist = [i for i in self.schema if i.name == dbSchema.name]
+        if len(exist) > 0:
+            raise ValueError("A schema of this name already exists in the database object.")
         self.schema.append(dbSchema)
-        if self.check() and create:
-            newSchema = sql.SQL("""CREATE SCHEMA IF NOT EXISTS {};""").format(sql.Identifier(dbSchema.name))
+        if create:
+            self.create_schema(dbSchema.name)
+    def check_schema(self, schemaName:str):
+        exist = [i for i in self.schema if i.name == schemaName]
+        if len(exist) == 0:
+            raise ValueError("A schema of this name does not exist in the database object.")
+        return True
+    def add_table(self, dbSchema:str, dbTable:str, create:bool = True):
+        schemas = 
+        return None
+    def create_table(self, dbSchema:str, dbTable:str):
+        return None
+    def create_schema(self, schemaName:str):
+        self.connect()
+        exist = [i for i in self.schema if i.name == schemaName]
+        if len(exist) == 0:
+            raise ValueError("No schema with this name exists in the current database object.")
+        if self.check():
+            newSchema = sql.SQL("""CREATE SCHEMA IF NOT EXISTS {};""").format(sql.Identifier(schemaName))
             with self.server.conn.cursor() as cur:
                 _ = cur.execute(newSchema)
             self.server.conn.commit()
         elif not self.check():
             raise DatabaseError(f"Cannot connect to {self.server.connstring}")
     def drop_schema(self, dbSchema:sch):
-        self.server.connect()
+        self.connect()
         if self.check():
             dropSchema = sql.SQL("""DROP SCHEMA IF EXISTS {};""").format(sql.Indentifier(dbSchema.name))
             try:
@@ -107,7 +134,7 @@ class d3database():
                 print("Database error.")
     def drop(self):
         # We need to switch out of wherever we are.
-        if self.server.conn.info.dbname == 'postgres':
+        if self.dbname == 'postgres':
             raise ValueError("You cannot drop a database when you are connected to the defauly 'postgres' database.")
         self.server.connect(dbname='postgres')
         query = sql.SQL("""
@@ -129,4 +156,9 @@ class d3database():
             self.server.conn.autocommit = False
             print(e)
         self.check()
+    def connect(self, dbname:str = None):
+        if not dbname:
+            dbname = self.dbname
+        self.server.connect(dbname)
+
         
