@@ -6,6 +6,7 @@ readme = "README.md"
 authors = [{ name = "Simon Goring", email = "simon.goring@ubc.ca" }]
 requires-python = ">=3.12"
 dependencies = [
+    "data-model",
     "pathlib>=1.0.1",
     "psycopg[binary]>=3.3.4",
     "pytest-html>=4.2.0",
@@ -29,3 +30,6 @@ dev = [
 [tool.pytest.ini_options]
 generate_report_on_test = true
 addopts = "--html=docs/test_report.html"
+
+[tool.uv.sources]
+data-model = { path = "../data_model" }

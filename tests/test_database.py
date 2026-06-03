@@ -7,7 +7,8 @@ def test_database_object(connection):
                         owner = 'appuser',
                         extensions = [],
                         server = connection)
-    assert db.dbname == 'dranky'
+    assert db.dbname == 'dranky', "We didn't properly set the database name."
+    assert db.server.dbname != 'dranky', "The server name only gets changed when the database is actually created."
 
 def test_database_false(create_cows):
     assert create_cows.check() == True

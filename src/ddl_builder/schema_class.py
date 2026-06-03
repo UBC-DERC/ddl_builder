@@ -4,8 +4,9 @@ from dataclasses import dataclass
 class schema():
     name: str
     tables: list
-    def __init__(self, name):
+    comment: str
+    def __init__(self, name, comment = "", tables = []):
         self.name = name
-        self.tables = []
-    
+        self.tables = tables
+        self.comment = comment    
     
