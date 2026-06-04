@@ -2,6 +2,7 @@ from psycopg import sql, DatabaseError, connect
 from dataclasses import dataclass, field
 from .server_class import Cownection
 from .schema_class import schema as sch
+from .table_class import table as tbl
 
 @dataclass
 class d3database():
@@ -101,13 +102,24 @@ class d3database():
         if create:
             self.create_schema(dbSchema.name)
     def check_schema(self, schemaName:str):
-        exist = [i for i in self.schema if i.name == schemaName]
-        if len(exist) == 0:
-            raise ValueError("A schema of this name does not exist in the database object.")
-        return True
-    def add_table(self, dbSchema:str, dbTable:str, create:bool = True):
-        schemas = 
-        return None
+        try:
+            schemaIndex = [i.name for i in self.schema].index(schemaName)
+            return schemaIndex
+        except ValueError as e:
+            raise ValueError(f"The schema {schemaName} is not present in the current database")
+    def check_table(self, schemaName:str, tableName:str)->tuple:
+        schemaIndex = self.check_schema(schemaName)
+        try:
+            tableIndex = [i.name for i in self.schema[schemaIndex].tables].index(tableName)
+            return (schemaIndex, tableIndex)
+        except ValueError:
+            raise ValueError(f"The table {tableName} is not present in the {schemaName} schema for this database.")
+    def add_table(self, schemaName:str, dbTable:tbl.table, create:bool = True):
+        try:
+            tableIndex = self.check_table(schemaName, dbTable.name)
+        except ValueError:
+            schemaIndex = self.check_schema(schemaName)
+            self.schema[schemaIndex].tables.append(dbTable)
     def create_table(self, dbSchema:str, dbTable:str):
         return None
     def create_schema(self, schemaName:str):

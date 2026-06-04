@@ -1,5 +1,5 @@
 from psycopg import sql
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 class table():
     name:str
@@ -8,4 +8,9 @@ class table():
     columns:list[column]
     constraints:list[constraint]
     indexes:list[index]
-    def __init__(name, type, comment, constraints, indexes):
+    def __init__(self, name, type, comment, constraints, indexes):
+        self.name = name
+        self.type = type
+        self.comment = comment
+        self.constraints = constraints
+        self.indexes = indexes
