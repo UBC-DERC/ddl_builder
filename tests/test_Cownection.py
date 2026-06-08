@@ -1,6 +1,3 @@
-import pytest
-import psycopg
-import ddl_builder as dlb
 
 def test_Cownection_connect(connection):
     # We want to check that the database server is running
