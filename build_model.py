@@ -1,7 +1,6 @@
 
 def main():
     import ddl_builder as dlb
-    import data_model as dm
     from yaml import safe_load
     from pathlib import Path
 

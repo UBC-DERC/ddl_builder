@@ -1,9 +1,5 @@
-from psycopg import sql, DatabaseError, connect
-from dataclasses import dataclass, field
+from psycopg import sql, DatabaseError
 from .server_class import Cownection
-from .schema_class import schema as sch
-from .table_class import table as tbl
-
 @dataclass
 class d3database():
     server: Cownection
@@ -105,7 +101,7 @@ class d3database():
         try:
             schemaIndex = [i.name for i in self.schema].index(schemaName)
             return schemaIndex
-        except ValueError as e:
+        except ValueError:
             raise ValueError(f"The schema {schemaName} is not present in the current database")
     def check_table(self, schemaName:str, tableName:str)->tuple:
         schemaIndex = self.check_schema(schemaName)
