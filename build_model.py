@@ -7,7 +7,7 @@ def main():
     with open(Path('settings.yaml'), 'r') as file:
         settings = safe_load(file)
 
-    yamlPath = Path(settings['modelpath']) / 'output.yaml'
+    yamlPath = Path(settings.get('modelpath', '.')) / settings.get('modelfile', 'output.yaml')
 
     with open(yamlPath, 'r') as file:
         database = safe_load(file)
@@ -18,18 +18,15 @@ def main():
     if not result.check():
         return None
 
-    newDB = dlb.d3database(dbname=database.get('name'),
+    newDB = dlb.D3Database(dbname=database.get('name'),
                               owner = 'appuser',
                               comment = database.get('comment'),
                               extensions = database.get('extensions', []),
                               encoding = database.get('encoding'),
                               locale = database.get('locale'),
                               server = result)
-    assert newDB.check() is False, "The database seems to exist already."
-    newDB.create()
     for i in database.get('schema'):
-        schema = dlb.schema(**i)
-        newDB.add_schema(schema, create = True)
-    
+        schema = dlb.Schema(**i)
+        
 if __name__ == "__main__":
     main()

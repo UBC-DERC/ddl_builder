@@ -45,7 +45,7 @@ class Index(StrictModel):
 
 class Table(StrictModel):
     name: str
-    type: str
+    type: str = 'BASE TABLE'
     comment: str
     columns: list[Column] = []
     constraints: list[Constraint] = []

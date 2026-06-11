@@ -23,11 +23,11 @@ class Cownection:
     conn: psycopg.Connection
     def __init__(self):
         load_dotenv()
-        self.dbname = environ.get('dbname')
-        self.port = environ.get('port')
-        self.user = environ.get('user')
-        self.host = environ.get('host')
-        self.password = environ.get('password')
+        self.dbname = environ.get('POSTGRES_DB')
+        self.port = environ.get('POSTGRES_PORT')
+        self.user = environ.get('POSTGRES_USER')
+        self.host = environ.get('POSTGRES_HOST')
+        self.password = environ.get('POSTGRES_PASSWORD')
         self.conn = None
     def connstring(self, dbname:str = None):
         return {'dbname': dbname or self.dbname,
