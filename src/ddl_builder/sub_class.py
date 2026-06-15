@@ -30,13 +30,16 @@ class Constraint(StrictModel):
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
+    def constraint_clause(self) -> sql.Composed:
+        clause = sql.SQL(self.definition)
+        return clause
 
 class Column(StrictModel):
     name:str
     type:str
     comment:str
     nullable:bool = True
-    def column_clause(self, alter:bool = False, table:str | None = None, schema:str | None = None) -> str:
+    def column_clause(self, alter:bool = False, table:str | None = None, schema:str | None = None) -> sql.Composed:
         if alter:
             if table is None or schema is None:
                 raise ValueError("Altering a column requires both table and schema names.")
@@ -61,6 +64,9 @@ class Index(StrictModel):
     type:str
     definition:str
     reference:list[Reference] = []
+    def index_clause(self) -> sql.Composed:
+        clause = sql.SQL(self.definition)
+        return clause
 
 class Table(StrictModel):
     name: str
@@ -69,7 +75,7 @@ class Table(StrictModel):
     columns: list[Column] = []
     constraints: list[Constraint] = []
     indexes: list[Index] = []
-    def table_clause(self, schema:str) -> str:
+    def table_clause(self, schema:str) -> sql.Composed:
         clause = sql.SQL('CREATE TABLE {}.{}').format(
             sql.Identifier(schema),
             sql.Identifier(self.name))
@@ -81,6 +87,9 @@ class Schema(StrictModel):
     name: str
     tables: list[Table] = []
     comment: str
+    def schema_clause(self) -> sql.Composed:
+        clause = sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(self.name))
+        return clause + sql.SQL(";")
 
 class D3Database(StrictModel):
     schemas: list[Schema] = []
@@ -90,3 +99,17 @@ class D3Database(StrictModel):
     extensions: list[str] = []
     encoding: str = 'UTF8'
     locale: str = 'en_CA'
+    def database_clause(self) -> sql.Composed:
+        clause = sql.SQL('CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={}').format(
+            sql.Identifier(self.dbname),
+            sql.Literal(self.owner),
+            sql.Literal(self.encoding),
+            sql.Literal(self.locale)
+        )
+        return clause + sql.SQL(";")
+    def extension_clauses(self) -> list[sql.Composed]:
+        clauses = []
+        for ext in self.extensions:
+            clause = sql.SQL('CREATE EXTENSION IF NOT EXISTS {}').format(sql.Identifier(ext))
+            clauses.append(clause + sql.SQL(";"))
+        return clauses
