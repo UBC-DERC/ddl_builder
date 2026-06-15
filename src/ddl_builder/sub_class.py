@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Annotated
 from pydantic import Field
 from typing_extensions import Self
+from psycopg import sql
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(strict=True)
@@ -35,6 +36,24 @@ class Column(StrictModel):
     type:str
     comment:str
     nullable:bool = True
+    def column_clause(self, alter:bool = False, table:str | None = None, schema:str | None = None) -> str:
+        if alter:
+            if table is None or schema is None:
+                raise ValueError("Altering a column requires both table and schema names.")
+            clause = sql.SQL('ALTER TABLE {}.{} ADD COLUMN {} {}').format(
+                sql.Identifier(schema),
+                sql.Identifier(table),
+                sql.Identifier(self.name),
+                sql.Identifier(self.type)
+            )
+        else:
+            clause = sql.SQL('{0} {1}').format(
+                sql.Identifier(self.name),
+                sql.Identifier(self.type)
+            )
+        if not self.nullable:
+            clause = sql.SQL('{} NOT NULL').format(clause)
+        return clause
 
 class Index(StrictModel):
     name: str   
@@ -50,6 +69,13 @@ class Table(StrictModel):
     columns: list[Column] = []
     constraints: list[Constraint] = []
     indexes: list[Index] = []
+    def table_clause(self, schema:str) -> str:
+        clause = sql.SQL('CREATE TABLE {}.{}').format(
+            sql.Identifier(schema),
+            sql.Identifier(self.name))
+        for i in self.columns:
+            clause = clause + sql.SQL("\n") + i.column_clause()
+        return clause + sql.SQL(";")
 
 class Schema(StrictModel):
     name: str
