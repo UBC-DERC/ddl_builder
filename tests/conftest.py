@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture
 def trySchema():
-    tryScheme = dlb.Schema(name = 'newScheme', comment = 'A schema for testing.')
+    tryScheme = dlb.Schema(name = 'new_scheme', comment = 'A schema for testing.')
     return tryScheme
 
 @pytest.fixture

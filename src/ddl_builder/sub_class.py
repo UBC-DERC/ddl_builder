@@ -1,9 +1,10 @@
 from pydantic import BaseModel, ConfigDict, model_validator
 from enum import Enum
 from typing import Annotated
-from pydantic import Field
-from typing_extensions import Self
+from pydantic import AfterValidator, Field
+from typing_extensions import Self, Annotated
 from psycopg import sql
+import re
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(strict=True)
@@ -12,6 +13,13 @@ class Reference(StrictModel):
     table:str
     column:str
 
+def needs_name(self)-> bool:
+    pattern = r'^[a-z_]+$'
+    match = re.match(pattern, self) is not None
+    if not match:
+        raise ValueError("Object name must contain only lowercase letters or an underscore.")
+    return self
+    
 class ConstraintEnum(str, Enum):
     check = 'CHECK'
     unique = 'UNIQUE'
@@ -21,7 +29,7 @@ class ConstraintEnum(str, Enum):
 
 class Constraint(StrictModel):
     definition: str | None = None
-    name:str
+    name: Annotated[str, AfterValidator(needs_name)]
     comment:str
     type:Annotated[ConstraintEnum, Field(strict=False)] = ConstraintEnum.check
     reference:list[Reference] = []
@@ -30,11 +38,6 @@ class Constraint(StrictModel):
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
-    @model_validator(mode='after')
-    def needs_name(self) -> bool:
-        if self.name == '':
-            raise ValueError("Constraint name cannot be empty.")
-        return self
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(self.definition)
         if self.comment:
@@ -42,7 +45,7 @@ class Constraint(StrictModel):
         return clause
 
 class Column(StrictModel):
-    name:str
+    name: Annotated[str, AfterValidator(needs_name)]
     type:str
     comment:str
     nullable:bool = True
@@ -66,7 +69,7 @@ class Column(StrictModel):
         return clause
 
 class Index(StrictModel):
-    name: str   
+    name: Annotated[str, AfterValidator(needs_name)]
     comment:str
     type:str
     definition:str
@@ -78,7 +81,7 @@ class Index(StrictModel):
         return clause
 
 class Table(StrictModel):
-    name: str
+    name: Annotated[str, AfterValidator(needs_name)]
     type: str = 'BASE TABLE'
     comment: str
     columns: list[Column] = []
@@ -93,7 +96,7 @@ class Table(StrictModel):
         return clause + sql.SQL(";")
 
 class Schema(StrictModel):
-    name: str
+    name: Annotated[str, AfterValidator(needs_name)]
     tables: list[Table] = []
     comment: str
     def schema_clause(self) -> sql.Composed:
@@ -102,7 +105,7 @@ class Schema(StrictModel):
 
 class D3Database(StrictModel):
     schemas: list[Schema] = []
-    dbname: str
+    dbname: Annotated[str, AfterValidator(needs_name)]
     comment: str | None = None
     owner: str = 'postgres'
     extensions: list[str] = []

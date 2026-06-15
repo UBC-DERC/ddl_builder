@@ -5,6 +5,10 @@ def test_constraint_noname():
     with pytest.raises(ValueError):
         Constraint(name="", type="PRIMARY KEY", definition="PRIMARY KEY (id)", comment="")
 
+def test_constraint_noname():
+    with pytest.raises(ValueError):
+        Constraint(name="Abc9", type="PRIMARY KEY", definition="PRIMARY KEY (id)", comment="")
+
 def test_constraint_foreign_key_no_reference():
     with pytest.raises(ValueError):
         Constraint(name="fk_test", type="FOREIGN KEY", definition="FOREIGN KEY (id) REFERENCES other_table(id)", comment="")

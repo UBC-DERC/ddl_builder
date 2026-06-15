@@ -9,7 +9,7 @@ def test_all_models_are_basemodels():
 def test_minimal_table_parses_from_dict():
     # round-trips a known-good YAML fragment
     Table.model_validate({
-        'name': 'newTable',
+        'name': 'newtable',
         'type': 'BASE TABLE',
         'comment': 'A table for testing'
     })
@@ -24,7 +24,7 @@ def test_fk_without_reference_is_rejected():
             "type": "REFERENCES",
             "reference": [],
             "comment": "A test",
-            "name": "testConstraint"})
+            "name": "test_constraint"})
         
 def test_fk_with_reference_parses():
     # The counter example to the above.
