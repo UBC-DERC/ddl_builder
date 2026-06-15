@@ -30,8 +30,15 @@ class Constraint(StrictModel):
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
+    @model_validator(mode='after')
+    def needs_name(self) -> bool:
+        if self.name == '':
+            raise ValueError("Constraint name cannot be empty.")
+        return self
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(self.definition)
+        if self.comment:
+            clause = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment))
         return clause
 
 class Column(StrictModel):
@@ -66,6 +73,8 @@ class Index(StrictModel):
     reference:list[Reference] = []
     def index_clause(self) -> sql.Composed:
         clause = sql.SQL(self.definition)
+        if self.comment: 
+            clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
         return clause
 
 class Table(StrictModel):
