@@ -112,7 +112,9 @@ class D3Database(StrictModel):
     encoding: str = 'UTF8'
     locale: str = 'en_CA'
     def database_clause(self) -> sql.Composed:
-        clause = sql.SQL('CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={}').format(
+        clause = sql.SQL("""
+                         CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={} TEMPLATE=''template0'
+                         """).format(
             sql.Identifier(self.dbname),
             sql.Literal(self.owner),
             sql.Literal(self.encoding),
