@@ -9,24 +9,8 @@ def main():
 
     yamlPath = Path(settings.get('modelpath', '.')) / settings.get('modelfile', 'output.yaml')
 
-    with open(yamlPath, 'r') as file:
-        database = safe_load(file)
-
-    # We want to check that the database server is running
-    result = dlb.Cownection()
-
-    if not result.check():
-        return None
-
-    newDB = dlb.D3Database(dbname=database.get('name'),
-                              owner = 'appuser',
-                              comment = database.get('comment'),
-                              extensions = database.get('extensions', []),
-                              encoding = database.get('encoding'),
-                              locale = database.get('locale'),
-                              server = result)
-    for i in database.get('schema'):
-        schema = dlb.Schema(**i)
+    outcome = dlb.read_yaml(yamlPath)
+    print(outcome)
         
 if __name__ == "__main__":
     main()

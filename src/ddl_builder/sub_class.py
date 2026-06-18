@@ -85,8 +85,6 @@ class Table(StrictModel):
     type: str = 'BASE TABLE'
     comment: str
     columns: list[Column] = []
-    constraints: list[Constraint] = []
-    indexes: list[Index] = []
     def table_clause(self, schema:str) -> sql.Composed:
         clause = sql.SQL('CREATE TABLE {}.{}').format(
             sql.Identifier(schema),
@@ -99,6 +97,8 @@ class Schema(StrictModel):
     name: Annotated[str, AfterValidator(needs_name)]
     tables: list[Table] = []
     comment: str
+    constraints: list[Constraint] = []
+    indexes: list[Index] = []
     def schema_clause(self) -> sql.Composed:
         clause = sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(self.name))
         return clause + sql.SQL(";")
