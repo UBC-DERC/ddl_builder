@@ -10,7 +10,8 @@ def main():
     yamlPath = Path(settings.get('modelpath', '.')) / settings.get('modelfile', 'output.yaml')
 
     outcome = dlb.read_yaml(yamlPath)
-    print(outcome)
+    newDB = dlb.ddl_from_dict(outcome)
+
         
 if __name__ == "__main__":
     main()

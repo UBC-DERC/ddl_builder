@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict, model_validator
 from enum import Enum
-from typing import Annotated
 from pydantic import AfterValidator, Field
 from typing_extensions import Self, Annotated
 from psycopg import sql
