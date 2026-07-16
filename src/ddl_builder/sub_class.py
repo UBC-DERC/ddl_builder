@@ -6,13 +6,36 @@ from psycopg import sql
 import re
 
 class StrictModel(BaseModel):
+    """_Modification of the Base Model, no type conversion._
+
+    Args:
+        BaseModel (_BaseModel_): _Part of the Pydantic setup._
+    """    
     model_config = ConfigDict(strict=True)
 
 class Reference(StrictModel):
+    """_Table Reference_
+
+    A class to manage references between (or within) tables in the database.
+
+    Args:
+        table (_str_): _A valid table within the schema._
+        column (_str_): A valid column within the table._
+    """    
     table:str
     column:str
 
-def needs_name(self)-> bool:
+def needs_name(self)-> str:
+    """_Check that the name provided is valid._
+
+    We are establishing an internal style where 
+
+    Raises:
+        ValueError: _Raises a ValueError if the provided name does not meet the requirements._
+
+    Returns:
+        str: _description_
+    """    
     pattern = r'^[a-z_]+$'
     match = re.match(pattern, self) is not None
     if not match:
@@ -84,6 +107,8 @@ class Table(StrictModel):
     type: str = 'BASE TABLE'
     comment: str
     columns: list[Column] = []
+    constraints: list[Constraint] = []
+    indexes: list[Index] = []
     def table_clause(self, schema:str) -> sql.Composed:
         clause = sql.SQL('CREATE TABLE {}.{}').format(
             sql.Identifier(schema),
@@ -91,13 +116,15 @@ class Table(StrictModel):
         for i in self.columns:
             clause = clause + sql.SQL("\n") + i.column_clause()
         return clause + sql.SQL(";")
+    def table_comments(self, schema:str) -> sql.Composed:
+        clause = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(
+            sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment))
+        return clause + sql.SQL(";")
 
 class Schema(StrictModel):
     name: Annotated[str, AfterValidator(needs_name)]
     tables: list[Table] = []
     comment: str
-    constraints: list[Constraint] = []
-    indexes: list[Index] = []
     def schema_clause(self) -> sql.Composed:
         clause = sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(self.name))
         return clause + sql.SQL(";")
