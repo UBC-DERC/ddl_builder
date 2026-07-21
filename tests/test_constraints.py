@@ -5,7 +5,7 @@ def test_constraint_noname():
     with pytest.raises(ValueError):
         Constraint(name="", type="PRIMARY KEY", definition="PRIMARY KEY (id)", comment="")
 
-def test_constraint_noname():
+def test_constraint_noname_two():
     with pytest.raises(ValueError):
         Constraint(name="Abc9", type="PRIMARY KEY", definition="PRIMARY KEY (id)", comment="")
 

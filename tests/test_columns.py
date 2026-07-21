@@ -1,5 +1,4 @@
 from ddl_builder import Column
-import pytest
 
 def test_column_clause_nullable_default():
     col = Column(name="id", type="integer", comment="")

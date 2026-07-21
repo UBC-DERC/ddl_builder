@@ -18,7 +18,7 @@ def test_input_yaml_matches_golden(tmp_path):
     )
 
     hashed_new = hashlib.md5()
-    produced = hashed_new.update(output.read_text())
+    produced = hashed_new.update(output.read_text().encode("utf-8"))
 
     if os.environ.get("UPDATE_GOLDEN"):
         GOLDEN.parent.mkdir(parents=True, exist_ok=True)
