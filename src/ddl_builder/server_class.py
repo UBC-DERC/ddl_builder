@@ -1,3 +1,5 @@
+from psycopg.connection import Connection
+from typing import Any
 from dataclasses import dataclass
 import psycopg
 from psycopg.rows import dict_row
@@ -23,11 +25,11 @@ class Cownection:
     conn: psycopg.Connection
     def __init__(self):
         load_dotenv()
-        self.dbname = environ.get('POSTGRES_DB')
-        self.port = environ.get('POSTGRES_PORT')
-        self.user = environ.get('POSTGRES_USER')
-        self.host = environ.get('POSTGRES_HOST')
-        self.password = environ.get('POSTGRES_PASSWORD')
+        self.dbname: str | None = environ.get(key='POSTGRES_DB')
+        self.port: str | None = environ.get(key='POSTGRES_PORT')
+        self.user: str | None = environ.get(key='POSTGRES_USER')
+        self.host: str | None = environ.get(key='POSTGRES_HOST')
+        self.password: str | None = environ.get(key='POSTGRES_PASSWORD')
         self.conn = None
     def connstring(self, dbname:str = None):
         return {'dbname': dbname or self.dbname,
@@ -42,17 +44,19 @@ class Cownection:
             _type_: _description_
         """        
         try:
-            conn = psycopg.connect(**self.connstring(dbname))
+            conn: Connection[tuple[Any, ...]] = psycopg.connect(**self.connstring(dbname))
         except psycopg.ProgrammingError as e:
             raise psycopg.ProgrammingError(f"Your connection string is likely malformed. Check that {self.connstring()} meets the requirements.\n{e}")
         if not conn.broken:
             return True
         return False
-    def connect(self, dbname:str = None):
+    def connect(self, dbname:str|None = None):
+        if not dbname:
+            dbname = self.dbname
         if self.conn:
             if not self.conn.closed:
                 self.conn.close()
-        self.conn = psycopg.connect(**self.connstring(dbname), row_factory = dict_row)
+        self.conn: Connection[tuple[Any, ...]] = psycopg.connect(**self.connstring(dbname), row_factory = dict_row)
     def close(self):
         if not self.conn.closed:
             self.conn.close()

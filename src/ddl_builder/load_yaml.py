@@ -47,9 +47,7 @@ class DDL_Dict(BaseModel):
     extensions:list[str] = []
     schemas:list[schema_dict]
 
-
-
-def read_yaml(filepath:Path)->dict:
+def read_yaml(filepath:Path)->DDL_Dict:
     """_Read YAML file from path._
 
     Args:
