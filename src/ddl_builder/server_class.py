@@ -1,3 +1,4 @@
+from pydantic.v1 import NoneStr
 from psycopg.connection import Connection
 from typing import Any
 from dataclasses import dataclass
@@ -30,14 +31,14 @@ class Cownection:
         self.user: str | None = environ.get(key='POSTGRES_USER')
         self.host: str | None = environ.get(key='POSTGRES_HOST')
         self.password: str | None = environ.get(key='POSTGRES_PASSWORD')
-        self.conn = None
-    def connstring(self, dbname:str = None):
+        self.conn: psycopg.Connection | None = None
+    def connstring(self, dbname:str|NoneStr = None):
         return {'dbname': dbname or self.dbname,
                 'port': self.port,
                 'user': self.user,
                 'password': self.password,
                 'host': self.host}
-    def check(self, dbname:str = None):
+    def check(self, dbname:str|NoneStr = None):
         """_Check that our connection to the database is valid._
 
         Returns:
