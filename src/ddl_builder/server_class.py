@@ -3,7 +3,7 @@ from psycopg.connection import Connection
 from typing import Any
 from dataclasses import dataclass
 import psycopg
-from psycopg.rows import dict_row
+from psycopg.rows import dict_row, DictRow
 from dotenv import load_dotenv
 from os import environ
 
@@ -57,7 +57,7 @@ class Cownection:
         if self.conn:
             if not self.conn.closed:
                 self.conn.close()
-        self.conn: Connection[tuple[Any, ...]] = psycopg.connect(**self.connstring(dbname), row_factory = dict_row)
+        self.conn: Connection[DictRow] = Connection[DictRow].connect(**self.connstring(dbname), row_factory = dict_row)
     def close(self):
         if not self.conn.closed:
             self.conn.close()
