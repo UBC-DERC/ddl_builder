@@ -11,8 +11,6 @@ wheels/
 
 .vscode/
 
-uv.lock
-
 .env
 
 # Brainstorming (local only, not tracked)

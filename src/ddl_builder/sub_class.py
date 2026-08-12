@@ -139,10 +139,10 @@ class D3Database(StrictModel):
     locale: str = 'en_CA'
     def database_clause(self) -> sql.Composed:
         clause = sql.SQL("""
-                         CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={} TEMPLATE=''template0'
+                         CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={} TEMPLATE='template0'
                          """).format(
             sql.Identifier(self.dbname),
-            sql.Literal(self.owner),
+            sql.Identifier(self.owner),
             sql.Literal(self.encoding),
             sql.Literal(self.locale)
         )

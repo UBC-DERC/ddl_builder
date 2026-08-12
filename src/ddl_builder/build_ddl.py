@@ -1,5 +1,5 @@
-from .sub_class import *
-from .load_yaml import *
+from .sub_class import D3Database
+from .load_yaml import DDL_Dict
 
 def ddl_from_dict(model:DDL_Dict)->D3Database:
     input = model.model_dump()

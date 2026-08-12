@@ -25,5 +25,7 @@ jobs:
             - run: uv sync
             - name: Lint (ruff)
               run: uv run ruff check .
+            - name: Test type checking (mypy)
+              run: uv run ty check .
             - name: Test project build
               run: uv run pytest
