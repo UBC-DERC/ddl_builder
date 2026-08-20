@@ -1,9 +1,11 @@
-from pydantic import BaseModel, ConfigDict, model_validator
-from enum import Enum
-from pydantic import AfterValidator, Field
-from typing_extensions import Self, Annotated
-from psycopg import sql
 import re
+from enum import Enum
+from typing import Annotated, LiteralString, Self, cast
+
+from psycopg import sql
+from psycopg.sql import Composed
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
+
 
 class StrictModel(BaseModel):
     """_Modification of the Base Model, no type conversion._
@@ -61,9 +63,11 @@ class Constraint(StrictModel):
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
     def constraint_clause(self) -> sql.Composed:
-        clause = sql.SQL(self.definition)
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.definition))
         if self.comment:
-            clause = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment))
+            clause: Composed = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment)) + sql.SQL(';')
+        else:
+            clause: Composed = clause + sql.SQL(obj=';')
         return clause
 
 class Column(StrictModel):
@@ -97,7 +101,7 @@ class Index(StrictModel):
     definition:str
     reference:list[Reference] = []
     def index_clause(self) -> sql.Composed:
-        clause = sql.SQL(self.definition)
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.definition)) + sql.SQL('')
         if self.comment: 
             clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
         return clause
@@ -114,42 +118,42 @@ class Table(StrictModel):
             sql.Identifier(schema),
             sql.Identifier(self.name))
         for i in self.columns:
-            clause = clause + sql.SQL("\n") + i.column_clause()
-        return clause + sql.SQL(";")
+            clause: Composed = clause + sql.SQL("\n") + i.column_clause()
+        return clause + sql.SQL(obj=';')
     def table_comments(self, schema:str) -> sql.Composed:
-        clause = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(
+        clause: Composed = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(
             sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment))
-        return clause + sql.SQL(";")
+        return clause
 
 class Schema(StrictModel):
     name: Annotated[str, AfterValidator(needs_name)]
     tables: list[Table] = []
     comment: str
     def schema_clause(self) -> sql.Composed:
-        clause = sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(self.name))
+        clause: Composed = sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(self.name))
         return clause + sql.SQL(";")
 
 class D3Database(StrictModel):
     schemas: list[Schema] = []
-    dbname: Annotated[str, AfterValidator(needs_name)]
+    name: Annotated[str, AfterValidator(needs_name)]
     comment: str | None = None
     owner: str = 'postgres'
     extensions: list[str] = []
     encoding: str = 'UTF8'
     locale: str = 'en_CA'
     def database_clause(self) -> sql.Composed:
-        clause = sql.SQL("""
+        clause: Composed = sql.SQL("""
                          CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={} TEMPLATE='template0'
                          """).format(
-            sql.Identifier(self.dbname),
+            sql.Identifier(self.name),
             sql.Identifier(self.owner),
             sql.Literal(self.encoding),
             sql.Literal(self.locale)
         )
         return clause + sql.SQL(";")
     def extension_clauses(self) -> list[sql.Composed]:
-        clauses = []
+        clauses: list[Composed] = []
         for ext in self.extensions:
-            clause = sql.SQL('CREATE EXTENSION IF NOT EXISTS {}').format(sql.Identifier(ext))
+            clause: Composed = sql.SQL('CREATE EXTENSION IF NOT EXISTS {}').format(sql.Identifier(ext))
             clauses.append(clause + sql.SQL(";"))
         return clauses

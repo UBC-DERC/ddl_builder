@@ -2,6 +2,7 @@
 import os
 import subprocess
 from pathlib import Path
+
 import yaml
 
 EXAMPLE = Path("examples/output.yaml")

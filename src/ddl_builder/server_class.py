@@ -1,11 +1,12 @@
-from pydantic.v1 import NoneStr
-from psycopg.connection import Connection
-from typing import Any
 from dataclasses import dataclass
-import psycopg
-from psycopg.rows import dict_row, DictRow
-from dotenv import load_dotenv
 from os import environ
+from typing import Any
+
+import psycopg
+from dotenv import load_dotenv
+from psycopg.connection import Connection
+from psycopg.rows import DictRow, dict_row
+
 
 @dataclass
 class Cownection:
@@ -18,46 +19,45 @@ class Cownection:
        database, but should also support switching between databases (if we start in postgres and
        then create the new database).
     """    
-    dbname: str
-    port: int
+    name: str
     user: str
     password: str
     host: str
-    conn: psycopg.Connection
+    port: int | None = 5432
+    conn: psycopg.Connection | None = None
     def __init__(self):
         load_dotenv()
-        self.dbname: str | None = environ.get(key='POSTGRES_DB')
+        self.name: str | None = environ.get(key='POSTGRES_DB')
         self.port: str | None = environ.get(key='POSTGRES_PORT')
         self.user: str | None = environ.get(key='POSTGRES_USER')
         self.host: str | None = environ.get(key='POSTGRES_HOST')
         self.password: str | None = environ.get(key='POSTGRES_PASSWORD')
         self.conn: psycopg.Connection | None = None
-    def connstring(self, dbname:str|NoneStr = None):
-        return {'dbname': dbname or self.dbname,
+    def connstring(self, name:str | None = None):
+        return {'name': name or self.name,
                 'port': self.port,
                 'user': self.user,
                 'password': self.password,
                 'host': self.host}
-    def check(self, dbname:str|NoneStr = None):
+    def check(self, name:str|None = None):
         """_Check that our connection to the database is valid._
 
         Returns:
             _type_: _description_
         """        
         try:
-            conn: Connection[tuple[Any, ...]] = psycopg.connect(**self.connstring(dbname))
+            conn: Connection[tuple[Any, ...]] = psycopg.connect(**self.connstring(name))
         except psycopg.ProgrammingError as e:
             raise psycopg.ProgrammingError(f"Your connection string is likely malformed. Check that {self.connstring()} meets the requirements.\n{e}")
-        if not conn.broken:
-            return True
-        return False
-    def connect(self, dbname:str|None = None):
-        if not dbname:
-            dbname = self.dbname
-        if self.conn:
-            if not self.conn.closed:
-                self.conn.close()
-        self.conn: Connection[DictRow] = Connection[DictRow].connect(**self.connstring(dbname), row_factory = dict_row)
+        return bool(not conn.broken)
+
+
+    def connect(self, name:str|None = None):
+        if not name:
+            name = self.name
+        if self.conn and not self.conn.closed:
+            self.conn.close()
+        self.conn: Connection[DictRow] = Connection[DictRow].connect(**self.connstring(name), row_factory = dict_row)
     def close(self):
-        if not self.conn.closed:
+        if self.conn and not self.conn.closed:
             self.conn.close()

@@ -5,10 +5,13 @@ artifact and the documentation. Validation failures are reported verbosely (all
 problems at once) to stderr and cause a non-zero exit code with no output
 written, so the tool can gate a deployment pipeline.
 """
-import ddl_builder as dlb
-from yaml import safe_load, safe_dump
-from pathlib import Path
 import argparse
+from pathlib import Path
+
+from yaml import safe_dump, safe_load
+
+import ddl_builder as dlb
+
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(

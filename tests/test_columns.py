@@ -1,5 +1,6 @@
 from ddl_builder import Column
 
+
 def test_column_clause_nullable_default():
     col = Column(name="id", type="integer", comment="")
     assert col.column_clause().as_string() == '"id" "integer"'

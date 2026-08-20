@@ -1,6 +1,17 @@
-from pydantic import BaseModel, ValidationError
 import pytest
-from ddl_builder import D3Database, Schema, Table, Column, Constraint, Index, StrictModel, ConstraintEnum
+from pydantic import BaseModel, ValidationError
+
+from ddl_builder import (
+    Column,
+    Constraint,
+    ConstraintEnum,
+    D3Database,
+    Index,
+    Schema,
+    StrictModel,
+    Table,
+)
+
 
 def test_all_models_are_basemodels():
     for cls in (D3Database, Schema, Table, Column, Constraint, Index):

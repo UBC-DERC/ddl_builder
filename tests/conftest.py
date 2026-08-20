@@ -1,5 +1,7 @@
-import ddl_builder as dlb
 import pytest
+
+import ddl_builder as dlb
+
 
 @pytest.fixture
 def trySchema():
@@ -8,7 +10,7 @@ def trySchema():
 
 @pytest.fixture
 def tryDb():
-    return dlb.D3Database(dbname='dranky',
+    return dlb.D3Database(name='dranky',
                         comment = 'This database',
                         owner = 'appuser',
                         extensions = [])

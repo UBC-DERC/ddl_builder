@@ -1,5 +1,7 @@
-from ddl_builder import Constraint
 import pytest
+
+from ddl_builder import Constraint
+
 
 def test_constraint_noname():
     with pytest.raises(ValueError):

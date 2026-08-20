@@ -1,5 +1,7 @@
-from ddl_builder import Column, Table, Index
 import pytest
+
+from ddl_builder import Column, Index, Table
+
 
 @pytest.fixture
 def single_column():

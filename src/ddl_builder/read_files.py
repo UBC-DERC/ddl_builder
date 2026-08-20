@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def read_files(filepath:str|Path)->object:
     if isinstance(filepath, str):
         path = Path(filepath)

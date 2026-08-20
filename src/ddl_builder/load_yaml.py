@@ -1,6 +1,8 @@
-import yaml
 from pathlib import Path
+
+import yaml
 from pydantic import BaseModel
+
 
 class column_dict(BaseModel):
     name:str
@@ -42,7 +44,7 @@ class schema_dict(BaseModel):
 class DDL_Dict(BaseModel):
     encoding:str = 'UTF8'
     locale:str = 'en_CA'
-    dbname:str
+    name:str
     comment:str | None = None
     extensions:list[str] = []
     schemas:list[schema_dict]

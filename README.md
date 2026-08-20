@@ -6,7 +6,7 @@ environment for our data models, and to help provide a toolset to manage ongoing
 
 ## DDL Workflow
 
-When a change is made to the data model, and that change is approved through a push to the `production` branch (the change has been suggested and vetted), then a GitHub action will trigger the workflow in this repository, pulling the Docker container, creating the database and adding extensions, and then building the schema and tables as defiined by the YAML files within `data_model`. A sample of [a valid yaml file](./examples/output.yaml) is found in the [`examples` folder](./examples/).
+When a change is made to the data model, and that change is approved through a push to the `production` or `devel` branch (the change has been suggested and vetted), then a GitHub action will trigger the workflow in this repository, pulling the Docker container, creating the database and adding extensions, and then building the schema and tables as defiined by the YAML files within `data_model`. A sample of [a valid yaml file](./examples/output.yaml) is found in the [`examples` folder](./examples/).
 
 On a successful run this repository will return a signal that indicates the data model is clear, no errors exist and that all references and indexes function as expected. Based on this, the database itself would be ready to deploy to a production environment.
 

@@ -12,9 +12,9 @@ def test_stable_connection(connection):
 
 def test_switching_database(connection):
     connection.connect()
-    connection.connect(dbname = 'postgres')
-    assert connection.conn.info.dbname == 'postgres', "The database is not properly switching when a new dbname is given."
-    assert connection.connstring().get('dbname') == 'appdb', "The connection string parameters are being changed."
+    connection.connect(name = 'postgres')
+    assert connection.conn.info.name == 'postgres', "The database is not properly switching when a new dbname is given."
+    assert connection.connstring().get('name') == 'appdb', "The connection string parameters are being changed."
 
 def test_closing_database(connection):
     connection.connect()
