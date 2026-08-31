@@ -8,7 +8,7 @@ written, so the tool can gate a deployment pipeline.
 import argparse
 from pathlib import Path
 
-from yaml import safe_dump, safe_load
+from yaml import safe_dump
 
 import ddl_builder as dlb
 
@@ -20,18 +20,14 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("entry", help="Path to the YAML file.")
     parser.add_argument("-o", "--output", required=True, help="Path for the composite output SQL.")
+    parser.add_argument("-d", "--docs", required=True, default="./docs", help="Path for the documentation output.")
     return parser
-
 
 def main(argv: list[str] | None = None) -> int:
     """Run the CLI. Returns the process exit code (0 success, 1 on validation failure)."""
     args = _build_parser().parse_args(argv)
 
-
-    with open(Path('settings.yaml'), 'r') as file:
-        settings = safe_load(file)
-
-    yamlPath = Path(settings.get('modelpath', '.')) / settings.get('modelfile', 'output.yaml')
+    yamlPath = Path(args.entry)
 
     outcome = dlb.read_yaml(yamlPath)
     newDB = dlb.ddl_from_dict(outcome)

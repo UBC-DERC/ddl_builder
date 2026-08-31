@@ -17,5 +17,5 @@ def test_constraint_foreign_key_no_reference():
 
 def test_constraint_compose():
     constraint = Constraint(name="chk_test", type="CHECK", definition="CHECK (value > 0)", comment="Check that value is positive")
-    expected_clause = 'CHECK (value > 0)\nCOMMENT CONSTRAINT "chk_test" is \'Check that value is positive\''
+    expected_clause = 'CHECK (value > 0)\nCOMMENT CONSTRAINT "chk_test" is \'Check that value is positive\';'
     assert constraint.constraint_clause().as_string() == expected_clause

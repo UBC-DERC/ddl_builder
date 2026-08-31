@@ -10,6 +10,10 @@ When a change is made to the data model, and that change is approved through a p
 
 On a successful run this repository will return a signal that indicates the data model is clear, no errors exist and that all references and indexes function as expected. Based on this, the database itself would be ready to deploy to a production environment.
 
+```bash
+uv run ddl-builder ./examples/output.yaml -o examples/ddl_model.yaml -d examples/docs
+```
+
 ```mermaid
 flowchart LR
     output@{ shape: doc, label: "Output Document" }
