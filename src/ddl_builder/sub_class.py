@@ -23,7 +23,8 @@ class Reference(StrictModel):
     Args:
         table (_str_): _A valid table within the schema._
         column (_str_): A valid column within the table._
-    """    
+    """
+    schema: str | None = None
     table:str
     column:str
 
@@ -83,12 +84,12 @@ class Column(StrictModel):
                 sql.Identifier(schema),
                 sql.Identifier(table),
                 sql.Identifier(self.name),
-                sql.Identifier(self.type)
+                sql.SQL(pg_type(self.type))
             )
         else:
             clause = sql.SQL('{0} {1}').format(
                 sql.Identifier(self.name),
-                sql.Identifier(self.type)
+                sql.SQL(pg_type(self.type))
             )
         if not self.nullable:
             clause = sql.SQL('{} NOT NULL').format(clause)

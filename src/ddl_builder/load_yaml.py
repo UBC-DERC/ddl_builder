@@ -11,6 +11,7 @@ class column_dict(BaseModel):
     nullable:bool = True
 
 class reference_dict(BaseModel):
+    schema: str | None
     table:str
     columns:list[str]
 
