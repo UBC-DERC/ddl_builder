@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class column_dict(BaseModel):
@@ -11,7 +11,8 @@ class column_dict(BaseModel):
     nullable:bool = True
 
 class reference_dict(BaseModel):
-    schema: str | None
+    model_config = ConfigDict(populate_by_name=True)
+    db_schema: str | None = Field(alias="schema")
     table:str
     columns:list[str]
 

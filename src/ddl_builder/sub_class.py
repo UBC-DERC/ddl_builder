@@ -5,7 +5,7 @@ from typing import Annotated, LiteralString, Self, cast
 from psycopg import sql
 from psycopg.sql import Composed
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
-
+from .pg_type import pg_type
 
 class StrictModel(BaseModel):
     """_Modification of the Base Model, no type conversion._
@@ -24,7 +24,8 @@ class Reference(StrictModel):
         table (_str_): _A valid table within the schema._
         column (_str_): A valid column within the table._
     """
-    schema: str | None = None
+    model_config = ConfigDict(populate_by_name=True)
+    db_schema: str | None = Field(default=None, alias="schema")
     table:str
     column:str
 
