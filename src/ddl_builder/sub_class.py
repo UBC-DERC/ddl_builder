@@ -52,7 +52,7 @@ class ConstraintEnum(str, Enum):
     foreign_key = 'REFERENCES'
 
 class Constraint(StrictModel):
-    definition: str | None = None
+    ddl: str | None = None
     name: Annotated[str, AfterValidator(needs_name)]
     comment:str
     type:Annotated[ConstraintEnum, Field(strict=False)] = ConstraintEnum.check
@@ -63,7 +63,7 @@ class Constraint(StrictModel):
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
     def constraint_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.definition))
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.comment:
             clause: Composed = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment)) + sql.SQL(';')
         else:
@@ -98,10 +98,10 @@ class Index(StrictModel):
     name: Annotated[str, AfterValidator(needs_name)]
     comment:str
     type:str
-    definition:str
+    ddl:str
     reference:list[Reference] = []
     def index_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.definition)) + sql.SQL('')
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('')
         if self.comment: 
             clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
         return clause

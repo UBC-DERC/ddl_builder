@@ -14,7 +14,7 @@ def double_column():
 
 @pytest.fixture
 def btree_index():
-    return Index(name="idx_name", type="btree", comment="", definition="CREATE INDEX idx_name ON users (name);")
+    return Index(name="idx_name", type="btree", comment="", ddl="CREATE INDEX idx_name ON users (name);")
 
 
 def test_new_table(single_column):

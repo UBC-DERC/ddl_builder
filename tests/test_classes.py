@@ -53,7 +53,7 @@ def test_strict_model_does_not_allow_arbitrary_types():
            StrictModel.model_config["arbitrary_types_allowed"] is False
 
 def test_optional_fields_accept_none():
-    Constraint.model_validate({"name": "c", "comment": "", "definition": None, "reference": []})
+    Constraint.model_validate({"name": "c", "comment": "", "ddl": None, "reference": []})
 
 def test_constraint_enum_rejects_unknown_type():
     # Catches a typo in the 'type' name:

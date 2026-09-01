@@ -14,6 +14,8 @@ On a successful run this repository will return a signal that indicates the data
 uv run ddl-builder ./examples/output.yaml -o examples/ddl_model.yaml -d examples/docs
 ```
 
+## Model Workflow
+
 ```mermaid
 flowchart LR
     output@{ shape: doc, label: "Output Document" }

@@ -18,14 +18,14 @@ class constraint_dict(BaseModel):
     name:str
     type:str | None = None
     comment:str | None = None
-    definition:str | None = None
+    ddl:str | None = None
     reference: list[reference_dict] = []
 
 class index_dict(BaseModel):
     name:str
     type:str | None = None
     comment:str
-    definition:str
+    ddl:str
     reference:list[reference_dict] = []
 
 class table_dict(BaseModel):
