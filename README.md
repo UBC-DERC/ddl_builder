@@ -1,8 +1,6 @@
 # DDL Builder
 
-Given a database, defined using the YAML template in the `data_model` repository, the DDL Builder repository
-is designed to create the database DDL (the SQL definition of the database structure). The goal of this repository is to provide a testing
-environment for our data models, and to help provide a toolset to manage ongoing changes to the database as the data model evolves over time.
+Given a database, defined using the YAML template in the `data_model` repository, the DDL Builder repository is designed to create the database DDL (the SQL definition of the database structure). The goal of this repository is to provide a testing environment for our data models, and to help provide a toolset to manage ongoing changes to the database as the data model evolves over time.
 
 ## DDL Workflow
 

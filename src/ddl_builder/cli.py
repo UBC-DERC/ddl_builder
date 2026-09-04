@@ -35,6 +35,6 @@ def main(argv: list[str] | None = None) -> int:
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as handle:
-        safe_dump(newDB.model_dump(by_alias=True), handle)
+        safe_dump(newDB.model_dump(by_alias=True, mode = "json"), handle)
     print(f"Wrote {args.output} and documentation to {args.docs}")
     return 0

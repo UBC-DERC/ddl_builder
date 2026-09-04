@@ -820,9 +820,6 @@ schemas:
     name: publications
     schema: dairy
     type: BASE TABLE
-- comment: 'The schema used for application specific tables, views and materialized
-    views.
-
-    '
+- comment: The schema used for application specific tables, views and materialized views.
   name: apps
   tables: []
