@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Annotated, LiteralString, Self, cast
+from typing import Annotated, LiteralString, Self, cast, Literal
 
 from psycopg import sql
 from psycopg.sql import Composed
@@ -51,7 +51,8 @@ class ConstraintEnum(str, Enum):
     unique = 'UNIQUE'
     unique_nulls_not_distinct = 'UNIQUE NULLS NOT DISTINCT'
     primary_key = 'PRIMARY KEY'
-    foreign_key = 'REFERENCES'
+    references = 'REFERENCES'
+    foreign_key = 'FOREIGN KEY'
 
 class Constraint(StrictModel):
     ddl: str | None = None
@@ -62,6 +63,7 @@ class Constraint(StrictModel):
     @model_validator(mode='after')
     def right_reference(self)-> Self:
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
+            print(self)
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
     def constraint_clause(self) -> sql.Composed:
