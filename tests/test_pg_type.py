@@ -127,7 +127,7 @@ def test_rejects_unknown_or_malformed(bad):
 
 def test_non_string_input_is_rejected():
     with pytest.raises(ValueError):
-        pg_type(123)  # type: ignore[arg-type]
+        pg_type(123)  # ty: ignore[invalid-argument-type]
 
 
 # --- 6. Project override adds a new type -----------------------------------

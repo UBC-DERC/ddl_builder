@@ -6,7 +6,7 @@ extensions:
 - pg_trgm
 locale: en_CA
 name: dairymodel
-owner: null
+owner: postgres
 schemas:
 - comment: The main dairy schema, with all data structures used for the farm.
   name: dairy
@@ -65,40 +65,44 @@ schemas:
       to any information about cows, their locations, movement, treatments and, ultimately,
       datasets produced using the cows as primary data elements.
     constraints:
-    - columns:
-      - cadid
-      - cowschemeid
-      comment: 'The PRIMARY KEY for this table is the unique set of the Canadian ID
+    - comment: 'The PRIMARY KEY for this table is the unique set of the Canadian ID
         and the scheme type. In our case all of the identifiers should have '
       ddl: PRIMARY KEY (cadid, cowschemeid)
       name: cowuniqueid
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns:
-      - damid
-      comment: A constraint to ensure that the dam ID is a valid ID based on the Canadian
+    - comment: A constraint to ensure that the dam ID is a valid ID based on the Canadian
         government ID scheme.
       ddl: CHECK (damid ~* '^.*$')
       name: damidvalid
-      references: null
+      reference: []
       type: CHECK
     indexes: []
     name: cows
-    schema: dairy
     type: BASE TABLE
   - columns:
-    - comment: An internal, unique string to indentify a particular instrument in
-        the general sense. This is as opposed to specific instances of an instrument
-        which would be identified with both the broader instrument, and the specific
-        serial number.
-      name: instrumentid
+    - comment: A unique internal indentifier for the dataset. This dataset id is used
+        to link to records and objects internally within the database. We use a uuid7
+        data type for these records so that the identifier can be located across all
+        data tables (as opposed to an integer, which may be duplicated across multiple
+        tables).
+      name: datasetid
       nullable: true
-      type: uuid-7
-    - comment: More specific description of the positioning within the pen/barn. For
-        example, "Halfway down the long side of the pen, 2m height"
-      name: location
+      type: uuid7
+    - comment: The external identifier for the dataset object. This may be a DOI,  an
+        ARK or a different data object. Currently the choice is simply  one of the
+        entries in the `externaldatabases` table, but this may  be limited to a subset
+        in the future.
+      name: identifier
       nullable: true
       type: text
+    - comment: A pointer to the `externaldatabase` table. It may be worth adding a
+        constraint that the `identifier` and the `urlmask` should form a valid URL.
+        In this case we should do some proper error/assertion responses to make sure
+        we're getting things right.
+      name: externaldatabaseid
+      nullable: true
+      type: uuid7
     - comment: The date this entry was created. This field is used for the purposes
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
@@ -114,125 +118,28 @@ schemas:
       name: datemodified
       nullable: true
       type: datetime
-    comment: A particular instrument, with a particular location.
+    comment: Links datasets to URLs/DOIs/ARKs for external data resources.
     constraints:
-    - columns:
-      - instrumentid
-      - location
-      comment: No comment provided.
-      ddl: PRIMARY KEY (instrumentid,location)
-      name: instrumantinstance_pk
-      references: null
+    - comment: Primary key to ensure unique entries. Joint key, since we need all
+        the information to provide a unique key.
+      ddl: PRIMARY KEY (datasetid, identifier, externaldatabaseid)
+      name: datasetidentifiers_pk
+      reference: []
       type: PRIMARY KEY
-    - columns: []
-      comment: No comment provided.
-      ddl: FOREIGN KEY (instrumentid) REFERENCES instruments(instrumentid) ON UPDATE
-        CASCADE ON DELETE CASCADE
-      name: instrumentid_fk
-      references:
-        columns:
-        - instrumentid
-        schema: dairy
-        table: instruments
-      type: FOREIGN KEY
+    - comment: A foreign key to point to the dataset id.
+      ddl: FOREIGN KEY (datasetid) REFERENCES datasets(datasetid) ON UPDATE CASCADE
+        ON DELETE CASCADE
+      name: datasetidentifiers_dsid_fk
+      reference: []
+      type: REFERENCES
+    - comment: Foreign key reference to external databases or resources.
+      ddl: FOREIGN KEY (externaldatabaseid) REFERENCES externaldatabases(externaldatabaseid)
+        ON UPDATE CASCADE ON DELETE CASCADE
+      name: datasetidentifiers_externaldbid_fk
+      reference: []
+      type: REFERENCES
     indexes: []
-    name: instrumentinstance
-    schema: null
-    type: BASE TABLE
-  - columns:
-    - comment: A unique internal identifer for a publication in the database.
-      name: publicationid
-      nullable: true
-      type: uuid7
-    - comment: A unique internal identifer for a keyword/source pair in the database.
-      name: keywordid
-      nullable: true
-      type: uuid7
-    - comment: A unique internal indentifier for an external source for subjects or
-        keywords. This may include sources such as WikiData, or the Library of Congress
-        subject catalog.
-      name: sourceid
-      nullable: true
-      type: uuid7
-    - comment: The date this entry was created. This field is used for the purposes
-        of tracking changes across the database, and supporting reproducibility of
-        data and data models, by allowing users to "roll back" or search for the impacts
-        of new changes or data additions.
-      name: datecreated
-      nullable: true
-      type: datetime
-    - comment: The date of the most recent record modification. This column does not
-        identify how the record was changed, although this should be a central element
-        of the data model. At present we are implementing the toolset, and providing
-        the opportunity to see that a record was modified, not neccessarily how that
-        record was modified.
-      name: datemodified
-      nullable: true
-      type: datetime
-    comment: Linking publications to associated keywords.
-    constraints:
-    - columns: []
-      comment: No comment provided.
-      ddl: FOREIGN KEY (publicationid) REFERENCES publications(publicationid) ON UPDATE
-        CASCADE
-      name: publication_fkey
-      references:
-        columns:
-        - publicationid
-        schema: dairy
-        table: publications
-      type: FOREIGN KEY
-    - columns: []
-      comment: No comment provided.
-      ddl: FOREIGN KEY (keywordid) REFERENCES keywords(keywordid) ON UPDATE CASCADE
-      name: keyword_fkey
-      references:
-        columns:
-        - keywordid
-        schema: dairy
-        table: keywords
-      type: FOREIGN KEY
-    indexes: []
-    name: publicationkeywords
-    schema: null
-    type: BASE TABLE
-  - columns:
-    - comment: An internal, unique string to indentify a particular instrument in
-        the general sense. This is as opposed to specific instances of an instrument
-        which would be identified with both the broader instrument, and the specific
-        serial number.
-      name: instrumentid
-      nullable: true
-      type: uuid-7
-    - comment: An internal and unique identifier for an individual to support identification
-        within the database.
-      name: individualid
-      nullable: true
-      type: uuid7
-    - comment: The unique internal identifier for the institution.
-      name: institutionid
-      nullable: true
-      type: UUID7
-    - comment: The date this entry was created. This field is used for the purposes
-        of tracking changes across the database, and supporting reproducibility of
-        data and data models, by allowing users to "roll back" or search for the impacts
-        of new changes or data additions.
-      name: datecreated
-      nullable: true
-      type: datetime
-    - comment: The date of the most recent record modification. This column does not
-        identify how the record was changed, although this should be a central element
-        of the data model. At present we are implementing the toolset, and providing
-        the opportunity to see that a record was modified, not neccessarily how that
-        record was modified.
-      name: datemodified
-      nullable: true
-      type: datetime
-    comment: Which person or organization (or both) maintains ownership of this instrument?
-    constraints: []
-    indexes: []
-    name: instrumentowners
-    schema: dairy
+    name: datasetidentifiers
     type: BASE TABLE
   - columns:
     - comment: References the uuid for the dataset metadata stored in the database.
@@ -245,40 +152,26 @@ schemas:
       type: uuid7
     comment: Links DERC related datasets to publications in the literature.
     constraints:
-    - columns: []
-      comment: The foreign key referencing the datasets table in the database.
+    - comment: The foreign key referencing the datasets table in the database.
       ddl: FOREIGN KEY (datasetid) REFERENCES datasets(datasetid) ON UPDATE CASCADE
         ON DELETE CASCADE
       name: datasetpublications_datasetid_fk
-      references:
-        columns:
-        - datasetid
-        schema: dairy
-        table: datasets
-      type: FOREIGN KEY
-    - columns: []
-      comment: The foreign key referencing the publications table in the database.
+      reference: []
+      type: REFERENCES
+    - comment: The foreign key referencing the publications table in the database.
       ddl: FOREIGN KEY (publicationid) REFERENCES publication(publicationid) ON UPDATE
         CASCADE ON DELETE CASCADE
       name: datasetpublications_publicationid_fk
-      references:
-        columns:
-        - publicationid
-        schema: dairy
-        table: publications
-      type: FOREIGN KEY
-    - columns:
-      - publicationid
-      - datasetid
-      comment: The Primary Key here is the joint datasetid/publicationid key. It shouldn't
+      reference: []
+      type: REFERENCES
+    - comment: The Primary Key here is the joint datasetid/publicationid key. It shouldn't
         be repeated.
       ddl: PRIMARY KEY (datasetid, publicationid)
       name: datasetpublications_joint_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: datasetpublications
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: A unique internal indentifier for the dataset. This dataset id is used
@@ -315,30 +208,36 @@ schemas:
     comment: A table to document datasets associated with the UBC Dairy Research Farm.
       Modeled largely on the work of [Science On Schema](https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md)
     constraints:
-    - columns:
-      - datasetid
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: PRIMARY KEY (datasetid)
       name: datasets_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: datasets
-    schema: dairy
     type: BASE TABLE
   - columns:
-    - comment: A unique internal identifer for a publication in the database.
-      name: publicationid
+    - comment: A unique internal identifier for an external database reference.
+      name: databaseid
       nullable: true
       type: uuid7
-    - comment: The article, or publication title.
-      name: title
+    - comment: The name of the external database or data resource.
+      name: externaldatabase
       nullable: true
       type: text
-    - comment: A longer form description of the dataset.
-      name: abstract
+    - comment: A web address for this resource, a primary location.
+      name: url
       nullable: true
-      type: text
+      type: url
+    - comment: The url mask is intended to show how the identifers should be used.  The
+        mask will be based on the resource itself. For example, ORCID indicates  that
+        its identifiers should be written as `https://orcid.org/0000-0000-0000-0000`,  in
+        which case the URL mask should be `{identifier}` such that replacing the  identifier
+        produces a valid URL. Thus, for a DOI, where the DOI itself is written `10.0000/0000000`,
+        the mask will be `https://doi.org/{identifier}`.
+      name: urlmask
+      nullable: true
+      type: url
     - comment: The date this entry was created. This field is used for the purposes
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
@@ -354,39 +253,47 @@ schemas:
       name: datemodified
       nullable: true
       type: datetime
-    - comment: A valid BibTeX reference for a publication.
-      name: bibtex
-      nullable: true
-      type: jsonb
-    - comment: A datetime object for the beginning of the publication date. We use
-        start and end date as a convention to manage uncertainty. In a case where
-        only year is known, we assign dates beginning at XXXX-01-01 and an end date
-        of XXXX-12-31.
-      name: datepublishedstart
-      nullable: true
-      type: datetime
-    - comment: 'A datetime object for the end of the possible publication date. We
-        use start and end date as a convention to manage uncertainty. In a case where
-        only year is known, we assign dates beginning at XXXX-01-01 and an end date
-        of XXXX-12-31. '
-      name: datepublishedend
-      nullable: true
-      type: datetime
-    comment: Documenting publication information tied to DERC. May be related to DERC
-      researchers, collaborators or associated work. This table is likely to be liberal
-      in its inclusion because much of the material will be imported through bulk-import
-      processes.
-    constraints:
-    - columns:
-      - publicationid
-      comment: No comment provided.
-      ddl: PRIMARY KEY (publicationid)
-      name: publication_pk
-      references: null
-      type: PRIMARY KEY
+    comment: A table to manage and record pointers to various external resources.
+      These resources include data management tools such as DOIs and ARKs, product
+      identifiers such as UPC codes,  and other external references such as WikiData,
+      or others.
+    constraints: []
     indexes: []
-    name: publications
-    schema: dairy
+    name: externaldatabases
+    type: BASE TABLE
+  - columns:
+    - comment: An internal and unique identifier for an individual to support identification
+        within the database.
+      name: individualid
+      nullable: true
+      type: uuid7
+    - comment: Text used as a valid identifier format (for example, DOIs or others).
+      name: identifier
+      nullable: true
+      type: text
+    - comment: A unique internal identifier for an external database reference.
+      name: externaldatabaseid
+      nullable: true
+      type: uuid7
+    - comment: The date this entry was created. This field is used for the purposes
+        of tracking changes across the database, and supporting reproducibility of
+        data and data models, by allowing users to "roll back" or search for the impacts
+        of new changes or data additions.
+      name: datecreated
+      nullable: true
+      type: datetime
+    - comment: The date of the most recent record modification. This column does not
+        identify how the record was changed, although this should be a central element
+        of the data model. At present we are implementing the toolset, and providing
+        the opportunity to see that a record was modified, not neccessarily how that
+        record was modified.
+      name: datemodified
+      nullable: true
+      type: datetime
+    comment: Linking individuals to external identifiers, such as websites, or ORCIDs.
+    constraints: []
+    indexes: []
+    name: individualidentifiers
     type: BASE TABLE
   - columns:
     - comment: An internal and unique identifier for an individual to support identification
@@ -434,40 +341,19 @@ schemas:
       this table after the [schema:Person](https://schema.org/Person) data model to
       some degree, for broader compatibility.
     constraints:
-    - columns:
-      - individualid
-      comment: The primary key for the table (comes with indexing as well).
+    - comment: The primary key for the table (comes with indexing as well).
       ddl: PRIMARY KEY(individualid)
       name: individual_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: individuals
-    schema: dairy
     type: BASE TABLE
   - columns:
-    - comment: A unique internal indentifier for the dataset. This dataset id is used
-        to link to records and objects internally within the database. We use a uuid7
-        data type for these records so that the identifier can be located across all
-        data tables (as opposed to an integer, which may be duplicated across multiple
-        tables).
-      name: datasetid
+    - comment: The unique internal identifier for the institution.
+      name: institutionid
       nullable: true
-      type: uuid7
-    - comment: The external identifier for the dataset object. This may be a DOI,  an
-        ARK or a different data object. Currently the choice is simply  one of the
-        entries in the `externaldatabases` table, but this may  be limited to a subset
-        in the future.
-      name: identifier
-      nullable: true
-      type: text
-    - comment: A pointer to the `externaldatabase` table. It may be worth adding a
-        constraint that the `identifier` and the `urlmask` should form a valid URL.
-        In this case we should do some proper error/assertion responses to make sure
-        we're getting things right.
-      name: externaldatabaseid
-      nullable: true
-      type: uuid7
+      type: UUID7
     - comment: The date this entry was created. This field is used for the purposes
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
@@ -483,63 +369,42 @@ schemas:
       name: datemodified
       nullable: true
       type: datetime
-    comment: Links datasets to URLs/DOIs/ARKs for external data resources.
+    - comment: In the case a record is replaced with an alternative record (for example
+        a manufacturer is sold to a new company).
+      name: superceedingrecord
+      nullable: true
+      type: UUID7
+    comment: A table for institutions and organizations. This table is modeled after
+      the [Research Organization Registry](https://ror.org/) and is intended to link
+      to collaboration institutions, manufacturers, suppliers and research or operational
+      dairy farms.
     constraints:
-    - columns: []
-      comment: Primary key to ensure unique entries. Joint key, since we need all
-        the information to provide a unique key.
-      ddl: PRIMARY KEY (datasetid, identifier, externaldatabaseid)
-      name: datasetidentifiers_pk
-      references: null
+    - comment: Primary key for the institutions table (expects to be unique)
+      ddl: PRIMARY KEY(institutionid)
+      name: institutionid_pk
+      reference: []
       type: PRIMARY KEY
-    - columns: []
-      comment: A foreign key to point to the dataset id.
-      ddl: FOREIGN KEY (datasetid) REFERENCES datasets(datasetid) ON UPDATE CASCADE
-        ON DELETE CASCADE
-      name: datasetidentifiers_dsid_fk
-      references:
-        columns:
-        - datasetid
-        schema: dairy
-        table: datasets
-      type: FOREIGN KEY
-    - columns: []
-      comment: Foreign key reference to external databases or resources.
-      ddl: FOREIGN KEY (externaldatabaseid) REFERENCES externaldatabases(externaldatabaseid)
-        ON UPDATE CASCADE ON DELETE CASCADE
-      name: datasetidentifiers_externaldbid_fk
-      references:
-        columns:
-        - databaseid
-        schema: dairy
-        table: externaldatabases
-      type: FOREIGN KEY
+    - comment: Allows for institutions to be renamed, or get switched over time.
+      ddl: FOREIGN KEY (superceedingrecord) REFERENCES institutions(institutionid)
+      name: institution_superceeding_fk
+      reference: []
+      type: REFERENCES
     indexes: []
-    name: datasetidentifiers
-    schema: dairy
+    name: institutions
     type: BASE TABLE
   - columns:
-    - comment: A unique internal identifier for an external database reference.
-      name: databaseid
+    - comment: An internal, unique string to indentify a particular instrument in
+        the general sense. This is as opposed to specific instances of an instrument
+        which would be identified with both the broader instrument, and the specific
+        serial number.
+      name: instrumentid
       nullable: true
-      type: uuid7
-    - comment: The name of the external database or data resource.
-      name: externaldatabase
+      type: uuid-7
+    - comment: More specific description of the positioning within the pen/barn. For
+        example, "Halfway down the long side of the pen, 2m height"
+      name: location
       nullable: true
       type: text
-    - comment: A web address for this resource, a primary location.
-      name: url
-      nullable: true
-      type: url
-    - comment: The url mask is intended to show how the identifers should be used.  The
-        mask will be based on the resource itself. For example, ORCID indicates  that
-        its identifiers should be written as `https://orcid.org/0000-0000-0000-0000`,  in
-        which case the URL mask should be `{identifier}` such that replacing the  identifier
-        produces a valid URL. Thus, for a DOI, where the DOI itself is written `10.0000/0000000`,
-        the mask will be `https://doi.org/{identifier}`.
-      name: urlmask
-      nullable: true
-      type: url
     - comment: The date this entry was created. This field is used for the purposes
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
@@ -555,14 +420,58 @@ schemas:
       name: datemodified
       nullable: true
       type: datetime
-    comment: A table to manage and record pointers to various external resources.
-      These resources include data management tools such as DOIs and ARKs, product
-      identifiers such as UPC codes,  and other external references such as WikiData,
-      or others.
+    comment: A particular instrument, with a particular location.
+    constraints:
+    - comment: No comment provided.
+      ddl: PRIMARY KEY (instrumentid,location)
+      name: instrumantinstance_pk
+      reference: []
+      type: PRIMARY KEY
+    - comment: No comment provided.
+      ddl: FOREIGN KEY (instrumentid) REFERENCES instruments(instrumentid) ON UPDATE
+        CASCADE ON DELETE CASCADE
+      name: instrumentid_fk
+      reference: []
+      type: REFERENCES
+    indexes: []
+    name: instrumentinstance
+    type: BASE TABLE
+  - columns:
+    - comment: An internal, unique string to indentify a particular instrument in
+        the general sense. This is as opposed to specific instances of an instrument
+        which would be identified with both the broader instrument, and the specific
+        serial number.
+      name: instrumentid
+      nullable: true
+      type: uuid-7
+    - comment: An internal and unique identifier for an individual to support identification
+        within the database.
+      name: individualid
+      nullable: true
+      type: uuid7
+    - comment: The unique internal identifier for the institution.
+      name: institutionid
+      nullable: true
+      type: UUID7
+    - comment: The date this entry was created. This field is used for the purposes
+        of tracking changes across the database, and supporting reproducibility of
+        data and data models, by allowing users to "roll back" or search for the impacts
+        of new changes or data additions.
+      name: datecreated
+      nullable: true
+      type: datetime
+    - comment: The date of the most recent record modification. This column does not
+        identify how the record was changed, although this should be a central element
+        of the data model. At present we are implementing the toolset, and providing
+        the opportunity to see that a record was modified, not neccessarily how that
+        record was modified.
+      name: datemodified
+      nullable: true
+      type: datetime
+    comment: Which person or organization (or both) maintains ownership of this instrument?
     constraints: []
     indexes: []
-    name: externaldatabases
-    schema: dairy
+    name: instrumentowners
     type: BASE TABLE
   - columns:
     - comment: An internal, unique string to indentify a particular instrument in
@@ -622,142 +531,34 @@ schemas:
       to documentation and workflow management. The design of this table and its associated
       foreign key links is based on the [RDA PIDINST v1.0](https://zenodo.org/records/6396467#.YkQxzRBBwlw).
     constraints:
-    - columns:
-      - instrumentid
-      comment: The PRIMARY KEY for this table is a UUID7, which is unordered and globally
+    - comment: The PRIMARY KEY for this table is a UUID7, which is unordered and globally
         unique. This is not the same as the UPC or serial number, and should be used
         only for internal reference.
       ddl: PRIMARY KEY (instrumentid)
       name: instrument_pkey
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns:
-      - instrumentid
-      comment: In the event an instrument is re-defined somehow -- when a value is
+    - comment: In the event an instrument is re-defined somehow -- when a value is
         overwritten -- this hierarchical key will point to the new information.
       ddl: FOREIGN KEY (superceedingrecordid) REFERENCES instruments(instrumentid)
         ON UPDATE CASCADE ON DELETE CASCADE
       name: superceeding_fkey
-      references:
-        columns:
-        - instrumentid
-        schema: dairy
-        table: instruments
-      type: FOREIGN KEY
-    - columns:
-      - manufacturerid
-      comment: No comment provided.
+      reference: []
+      type: REFERENCES
+    - comment: No comment provided.
       ddl: FOREIGN KEY (manufacturerid) REFERENCES institutions(institutionid) ON
         UPDATE CASCADE
       name: manufacturer_fkey
-      references:
-        columns:
-        - institutionid
-        schema: dairy
-        table: institutions
-      type: FOREIGN KEY
-    - columns:
-      - supplierid
-      comment: No comment provided.
+      reference: []
+      type: REFERENCES
+    - comment: No comment provided.
       ddl: FOREIGN KEY (supplierid) REFERENCES institutions(institutionid) ON UPDATE
         CASCADE
       name: supplier_fkey
-      references:
-        columns:
-        - institutionid
-        schema: dairy
-        table: institutions
-      type: FOREIGN KEY
+      reference: []
+      type: REFERENCES
     indexes: []
     name: instruments
-    schema: dairy
-    type: BASE TABLE
-  - columns:
-    - comment: The unique internal identifier for the institution.
-      name: institutionid
-      nullable: true
-      type: UUID7
-    - comment: The date this entry was created. This field is used for the purposes
-        of tracking changes across the database, and supporting reproducibility of
-        data and data models, by allowing users to "roll back" or search for the impacts
-        of new changes or data additions.
-      name: datecreated
-      nullable: true
-      type: datetime
-    - comment: The date of the most recent record modification. This column does not
-        identify how the record was changed, although this should be a central element
-        of the data model. At present we are implementing the toolset, and providing
-        the opportunity to see that a record was modified, not neccessarily how that
-        record was modified.
-      name: datemodified
-      nullable: true
-      type: datetime
-    - comment: In the case a record is replaced with an alternative record (for example
-        a manufacturer is sold to a new company).
-      name: superceedingrecord
-      nullable: true
-      type: UUID7
-    comment: A table for institutions and organizations. This table is modeled after
-      the [Research Organization Registry](https://ror.org/) and is intended to link
-      to collaboration institutions, manufacturers, suppliers and research or operational
-      dairy farms.
-    constraints:
-    - columns:
-      - institutionid
-      comment: Primary key for the institutions table (expects to be unique)
-      ddl: PRIMARY KEY(institutionid)
-      name: institutionid_pk
-      references: null
-      type: PRIMARY KEY
-    - columns:
-      - superceedingrecord
-      comment: Allows for institutions to be renamed, or get switched over time.
-      ddl: FOREIGN KEY (superceedingrecord) REFERENCES institutions(institutionid)
-      name: institution_superceeding_fk
-      references:
-        columns:
-        - institutionid
-        schema: dairy
-        table: institutions
-      type: FOREIGN KEY
-    indexes: []
-    name: institutions
-    schema: dairy
-    type: BASE TABLE
-  - columns:
-    - comment: An internal and unique identifier for an individual to support identification
-        within the database.
-      name: individualid
-      nullable: true
-      type: uuid7
-    - comment: Text used as a valid identifier format (for example, DOIs or others).
-      name: identifier
-      nullable: true
-      type: text
-    - comment: A unique internal identifier for an external database reference.
-      name: externaldatabaseid
-      nullable: true
-      type: uuid7
-    - comment: The date this entry was created. This field is used for the purposes
-        of tracking changes across the database, and supporting reproducibility of
-        data and data models, by allowing users to "roll back" or search for the impacts
-        of new changes or data additions.
-      name: datecreated
-      nullable: true
-      type: datetime
-    - comment: The date of the most recent record modification. This column does not
-        identify how the record was changed, although this should be a central element
-        of the data model. At present we are implementing the toolset, and providing
-        the opportunity to see that a record was modified, not neccessarily how that
-        record was modified.
-      name: datemodified
-      nullable: true
-      type: datetime
-    comment: Linking individuals to external identifiers, such as websites, or ORCIDs.
-    constraints: []
-    indexes: []
-    name: individualidentifiers
-    schema: null
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a keyword/source pair in the database.
@@ -798,31 +599,125 @@ schemas:
       these terms are linked to external resources, such as ontologies or subject
       schema.
     constraints:
-    - columns:
-      - keywordid
-      - sourceid
-      comment: Primary key for the keywords table (expects to be unique)
+    - comment: Primary key for the keywords table (expects to be unique)
       ddl: PRIMARY KEY(keywordid, sourceid)
       name: keywordid_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns: []
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (sourceid) REFERENCES externaldatabases(databaseid)
       name: keywordsource_fk
-      references:
-        columns:
-        - databaseid
-        schema: dairy
-        table: externaldatabases
-      type: FOREIGN KEY
+      reference: []
+      type: REFERENCES
     indexes: []
     name: keywords
-    schema: dairy
     type: BASE TABLE
-- comment: 'The schema used for application specific tables, views and materialized
+  - columns:
+    - comment: A unique internal identifer for a publication in the database.
+      name: publicationid
+      nullable: true
+      type: uuid7
+    - comment: A unique internal identifer for a keyword/source pair in the database.
+      name: keywordid
+      nullable: true
+      type: uuid7
+    - comment: A unique internal indentifier for an external source for subjects or
+        keywords. This may include sources such as WikiData, or the Library of Congress
+        subject catalog.
+      name: sourceid
+      nullable: true
+      type: uuid7
+    - comment: The date this entry was created. This field is used for the purposes
+        of tracking changes across the database, and supporting reproducibility of
+        data and data models, by allowing users to "roll back" or search for the impacts
+        of new changes or data additions.
+      name: datecreated
+      nullable: true
+      type: datetime
+    - comment: The date of the most recent record modification. This column does not
+        identify how the record was changed, although this should be a central element
+        of the data model. At present we are implementing the toolset, and providing
+        the opportunity to see that a record was modified, not neccessarily how that
+        record was modified.
+      name: datemodified
+      nullable: true
+      type: datetime
+    comment: Linking publications to associated keywords.
+    constraints:
+    - comment: No comment provided.
+      ddl: FOREIGN KEY (publicationid) REFERENCES publications(publicationid) ON UPDATE
+        CASCADE
+      name: publication_fkey
+      reference: []
+      type: REFERENCES
+    - comment: No comment provided.
+      ddl: FOREIGN KEY (keywordid) REFERENCES keywords(keywordid) ON UPDATE CASCADE
+      name: keyword_fkey
+      reference: []
+      type: REFERENCES
+    indexes: []
+    name: publicationkeywords
+    type: BASE TABLE
+  - columns:
+    - comment: A unique internal identifer for a publication in the database.
+      name: publicationid
+      nullable: true
+      type: uuid7
+    - comment: The article, or publication title.
+      name: title
+      nullable: true
+      type: text
+    - comment: A longer form description of the dataset.
+      name: abstract
+      nullable: true
+      type: text
+    - comment: The date this entry was created. This field is used for the purposes
+        of tracking changes across the database, and supporting reproducibility of
+        data and data models, by allowing users to "roll back" or search for the impacts
+        of new changes or data additions.
+      name: datecreated
+      nullable: true
+      type: datetime
+    - comment: The date of the most recent record modification. This column does not
+        identify how the record was changed, although this should be a central element
+        of the data model. At present we are implementing the toolset, and providing
+        the opportunity to see that a record was modified, not neccessarily how that
+        record was modified.
+      name: datemodified
+      nullable: true
+      type: datetime
+    - comment: A valid BibTeX reference for a publication.
+      name: bibtex
+      nullable: true
+      type: jsonb
+    - comment: A datetime object for the beginning of the publication date. We use
+        start and end date as a convention to manage uncertainty. In a case where
+        only year is known, we assign dates beginning at XXXX-01-01 and an end date
+        of XXXX-12-31.
+      name: datepublishedstart
+      nullable: true
+      type: datetime
+    - comment: 'A datetime object for the end of the possible publication date. We
+        use start and end date as a convention to manage uncertainty. In a case where
+        only year is known, we assign dates beginning at XXXX-01-01 and an end date
+        of XXXX-12-31. '
+      name: datepublishedend
+      nullable: true
+      type: datetime
+    comment: Documenting publication information tied to DERC. May be related to DERC
+      researchers, collaborators or associated work. This table is likely to be liberal
+      in its inclusion because much of the material will be imported through bulk-import
+      processes.
+    constraints:
+    - comment: No comment provided.
+      ddl: PRIMARY KEY (publicationid)
+      name: publication_pk
+      reference: []
+      type: PRIMARY KEY
+    indexes: []
+    name: publications
+    type: BASE TABLE
+- comment: The schema used for application specific tables, views and materialized
     views.
-
-    '
   name: apps
   tables: []

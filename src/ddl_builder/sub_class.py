@@ -64,8 +64,11 @@ class Constraint(StrictModel):
     reference:list[Reference] = []
     @model_validator(mode='after')
     def right_reference(self)-> Self:
+        # Treat REFERENCES as an alias for FOREIGN KEY
+        if self.type == ConstraintEnum.references:
+            self.type = ConstraintEnum.foreign_key
+        
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
-            print(self)
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
     def constraint_clause(self) -> sql.Composed:
@@ -85,16 +88,21 @@ class Column(StrictModel):
         if alter:
             if table is None or schema is None:
                 raise ValueError("Altering a column requires both table and schema names.")
+            # Note that this is pushing out a LiteralString for the variable type,
+            # However, the string is coming from our own validated yaml, or the user's yaml,
+            # so it should be safe, or at least, user-responsible.
+            # TODO: In the documentation for this class, and in other places, we should note that
+            # this is a potential issue.
             clause = sql.SQL('ALTER TABLE {}.{} ADD COLUMN {} {}').format(
                 sql.Identifier(schema),
                 sql.Identifier(table),
                 sql.Identifier(self.name),
-                sql.SQL(pg_type(self.type))
+                sql.SQL(cast(LiteralString, val=pg_type(self.type)))
             )
         else:
             clause = sql.SQL('{0} {1}').format(
                 sql.Identifier(self.name),
-                sql.SQL(pg_type(self.type))
+                sql.SQL(cast(typ=LiteralString, val=pg_type(self.type)))
             )
         if not self.nullable:
             clause = sql.SQL('{} NOT NULL').format(clause)
