@@ -1,0 +1,100 @@
+# ---------------------------------------------------------------------------
+# ddl_builder :: PostgreSQL data type registry
+# ---------------------------------------------------------------------------
+#  A whitelist for PostgreSQL data types.
+#  The file is loaded by `pg_type()`, and (if present) merges a project file
+#  named `pg_types.yaml` from the project root. The override is additive:
+#  it can add new canonical types or extra aliases, but it does not remove the
+#  built-ins listed here.
+#
+# Structure:
+#   <canonical spelling>:      # the spelling emitted into the generated DDL
+#     - <alias>                # any accepted alias the user may write instead
+#     - <alias>
+#
+# A type with no aliases is written as an empty list ([]).
+# Any type the user writes is canonicalised to the key before being emitted,
+# e.g. `int4` -> `integer`, `decimal(10,2)` -> `numeric(10,2)`.
+#
+# Type modifiers `(...)` and array suffixes `[]` are handled by the validator,
+# so list only the *base* type name here (e.g. `numeric`, not `numeric(p,s)`).
+#
+# NOTE: a few types take an *infix* modifier, e.g. `timestamp(3) with time
+# zone`. List the full multi-word spelling here; the validator is responsible
+# for matching around the modifier.
+# ---------------------------------------------------------------------------
+
+smallint:
+  - int2
+integer:
+  - int
+  - int4
+bigint:
+  - int8
+numeric:
+  - decimal
+real:
+  - float4
+double precision:
+  - float8
+money: []
+
+smallserial:
+  - serial2
+serial:
+  - serial4
+bigserial:
+  - serial8
+
+character varying:
+  - varchar
+character:
+  - char
+text: []
+
+bytea: []
+
+boolean:
+  - bool
+
+date: []
+time:
+  - time without time zone
+time with time zone:
+  - timetz
+timestamp:
+  - timestamp without time zone
+timestamp with time zone:
+  - timestamptz
+interval: []
+
+bit: []
+bit varying:
+  - varbit
+
+uuid: []
+
+json: []
+jsonb: []
+
+xml: []
+
+cidr: []
+inet: []
+macaddr: []
+macaddr8: []
+
+point: []
+line: []
+lseg: []
+box: []
+path: []
+polygon: []
+circle: []
+
+tsvector: []
+tsquery: []
+
+pg_lsn: []
+pg_snapshot: []
+txid_snapshot: []

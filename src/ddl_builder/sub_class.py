@@ -1,11 +1,11 @@
 import re
 from enum import Enum
-from typing import Annotated, LiteralString, Self, cast
+from typing import Annotated, LiteralString, Self, cast, Literal
 
 from psycopg import sql
 from psycopg.sql import Composed
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
-
+from .pg_type import pg_type
 
 class StrictModel(BaseModel):
     """_Modification of the Base Model, no type conversion._
@@ -23,7 +23,9 @@ class Reference(StrictModel):
     Args:
         table (_str_): _A valid table within the schema._
         column (_str_): A valid column within the table._
-    """    
+    """
+    model_config = ConfigDict(populate_by_name=True)
+    db_schema: str | None = Field(default=None, alias="schema")
     table:str
     column:str
 
@@ -49,10 +51,11 @@ class ConstraintEnum(str, Enum):
     unique = 'UNIQUE'
     unique_nulls_not_distinct = 'UNIQUE NULLS NOT DISTINCT'
     primary_key = 'PRIMARY KEY'
-    foreign_key = 'REFERENCES'
+    references = 'REFERENCES'
+    foreign_key = 'FOREIGN KEY'
 
 class Constraint(StrictModel):
-    definition: str | None = None
+    ddl: str | None = None
     name: Annotated[str, AfterValidator(needs_name)]
     comment:str
     type:Annotated[ConstraintEnum, Field(strict=False)] = ConstraintEnum.check
@@ -60,10 +63,11 @@ class Constraint(StrictModel):
     @model_validator(mode='after')
     def right_reference(self)-> Self:
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
+            print(self)
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
     def constraint_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.definition))
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.comment:
             clause: Composed = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment)) + sql.SQL(';')
         else:
@@ -83,12 +87,12 @@ class Column(StrictModel):
                 sql.Identifier(schema),
                 sql.Identifier(table),
                 sql.Identifier(self.name),
-                sql.Identifier(self.type)
+                sql.SQL(pg_type(self.type))
             )
         else:
             clause = sql.SQL('{0} {1}').format(
                 sql.Identifier(self.name),
-                sql.Identifier(self.type)
+                sql.SQL(pg_type(self.type))
             )
         if not self.nullable:
             clause = sql.SQL('{} NOT NULL').format(clause)
@@ -98,10 +102,10 @@ class Index(StrictModel):
     name: Annotated[str, AfterValidator(needs_name)]
     comment:str
     type:str
-    definition:str
+    ddl:str
     reference:list[Reference] = []
     def index_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.definition)) + sql.SQL('')
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('')
         if self.comment: 
             clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
         return clause

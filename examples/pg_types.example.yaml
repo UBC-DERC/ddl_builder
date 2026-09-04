@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------------------
+# ddl_builder :: project-level PostgreSQL data type override (TEMPLATE)
+# ---------------------------------------------------------------------------
+# Copy this file to your project root as `pg_types.yaml` to extend the type
+# whitelist that `ddl_builder` accepts.
+#
+# This file is MERGED on top of the bundled type registry:
+#   * New canonical types you add here become valid.
+#   * Extra aliases you add to an existing canonical type are appended.
+#   * You cannot remove or disable a bundled built-in from here.
+#
+# Structure (same as the bundled file):
+#   <canonical spelling>:      # spelling emitted into the generated DDL
+#     - <alias>                # accepted alias the user may write instead
+#
+# Only add a type here once the extension that provides it is listed in your
+# database's `extensions:` block -- otherwise the generated DDL will create a
+# column whose type does not yet exist on the server.
+# ---------------------------------------------------------------------------
+
+# --- Example: TimescaleDB --------------------------------------------------
+# TimescaleDB does not add column data types (its features are hypertables and
+# functions), so nothing is required here for it. Shown as a reminder that the
+# `extensions:` block in your database definition is what enables it.
+
+# --- Example: PostGIS (adds spatial column types) --------------------------
+# Uncomment after adding `postgis` to your database `extensions:` list.
+# geometry: []
+# geography: []
+# box2d: []
+# box3d: []
+
+# --- Example: pgvector (adds the vector similarity type) -------------------
+# Uncomment after adding `vector` to your database `extensions:` list.
+# vector: []
+
+# --- Example: citext (case-insensitive text) -------------------------------
+# Uncomment after adding `citext` to your database `extensions:` list.
+# citext: []
+
+# --- Example: hstore (key/value pairs) -------------------------------------
+# Uncomment after adding `hstore` to your database `extensions:` list.
+# hstore: []
+
+# --- Example: adding an alias to a built-in type ---------------------------
+# Suppose you want your team to be able to write `int64` for a bigint:
+# bigint:
+#   - int64

@@ -6,7 +6,7 @@ extensions:
 - pg_trgm
 locale: en_CA
 name: dairymodel
-owner: null
+owner: postgres
 schemas:
 - comment: The main dairy schema, with all data structures used for the farm.
   name: dairy
@@ -65,26 +65,20 @@ schemas:
       to any information about cows, their locations, movement, treatments and, ultimately,
       datasets produced using the cows as primary data elements.
     constraints:
-    - columns:
-      - cadid
-      - cowschemeid
-      comment: 'The PRIMARY KEY for this table is the unique set of the Canadian ID
+    - comment: 'The PRIMARY KEY for this table is the unique set of the Canadian ID
         and the scheme type. In our case all of the identifiers should have '
       ddl: PRIMARY KEY (cadid, cowschemeid)
       name: cowuniqueid
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns:
-      - damid
-      comment: A constraint to ensure that the dam ID is a valid ID based on the Canadian
+    - comment: A constraint to ensure that the dam ID is a valid ID based on the Canadian
         government ID scheme.
       ddl: CHECK (damid ~* '^.*$')
       name: damidvalid
-      references: null
+      reference: []
       type: CHECK
     indexes: []
     name: cows
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: A unique internal indentifier for the dataset. This dataset id is used
@@ -126,38 +120,26 @@ schemas:
       type: datetime
     comment: Links datasets to URLs/DOIs/ARKs for external data resources.
     constraints:
-    - columns: []
-      comment: Primary key to ensure unique entries. Joint key, since we need all
+    - comment: Primary key to ensure unique entries. Joint key, since we need all
         the information to provide a unique key.
       ddl: PRIMARY KEY (datasetid, identifier, externaldatabaseid)
       name: datasetidentifiers_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns: []
-      comment: A foreign key to point to the dataset id.
+    - comment: A foreign key to point to the dataset id.
       ddl: FOREIGN KEY (datasetid) REFERENCES datasets(datasetid) ON UPDATE CASCADE
         ON DELETE CASCADE
       name: datasetidentifiers_dsid_fk
-      references:
-        columns:
-        - datasetid
-        schema: dairy
-        table: datasets
+      reference: []
       type: REFERENCES
-    - columns: []
-      comment: Foreign key reference to external databases or resources.
+    - comment: Foreign key reference to external databases or resources.
       ddl: FOREIGN KEY (externaldatabaseid) REFERENCES externaldatabases(externaldatabaseid)
         ON UPDATE CASCADE ON DELETE CASCADE
       name: datasetidentifiers_externaldbid_fk
-      references:
-        columns:
-        - databaseid
-        schema: dairy
-        table: externaldatabases
+      reference: []
       type: REFERENCES
     indexes: []
     name: datasetidentifiers
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: References the uuid for the dataset metadata stored in the database.
@@ -170,40 +152,26 @@ schemas:
       type: uuid7
     comment: Links DERC related datasets to publications in the literature.
     constraints:
-    - columns: []
-      comment: The foreign key referencing the datasets table in the database.
+    - comment: The foreign key referencing the datasets table in the database.
       ddl: FOREIGN KEY (datasetid) REFERENCES datasets(datasetid) ON UPDATE CASCADE
         ON DELETE CASCADE
       name: datasetpublications_datasetid_fk
-      references:
-        columns:
-        - datasetid
-        schema: dairy
-        table: datasets
+      reference: []
       type: REFERENCES
-    - columns: []
-      comment: The foreign key referencing the publications table in the database.
+    - comment: The foreign key referencing the publications table in the database.
       ddl: FOREIGN KEY (publicationid) REFERENCES publication(publicationid) ON UPDATE
         CASCADE ON DELETE CASCADE
       name: datasetpublications_publicationid_fk
-      references:
-        columns:
-        - publicationid
-        schema: dairy
-        table: publications
+      reference: []
       type: REFERENCES
-    - columns:
-      - publicationid
-      - datasetid
-      comment: The Primary Key here is the joint datasetid/publicationid key. It shouldn't
+    - comment: The Primary Key here is the joint datasetid/publicationid key. It shouldn't
         be repeated.
       ddl: PRIMARY KEY (datasetid, publicationid)
       name: datasetpublications_joint_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: datasetpublications
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: A unique internal indentifier for the dataset. This dataset id is used
@@ -240,16 +208,13 @@ schemas:
     comment: A table to document datasets associated with the UBC Dairy Research Farm.
       Modeled largely on the work of [Science On Schema](https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md)
     constraints:
-    - columns:
-      - datasetid
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: PRIMARY KEY (datasetid)
       name: datasets_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: datasets
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifier for an external database reference.
@@ -295,7 +260,6 @@ schemas:
     constraints: []
     indexes: []
     name: externaldatabases
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: An internal and unique identifier for an individual to support identification
@@ -330,7 +294,6 @@ schemas:
     constraints: []
     indexes: []
     name: individualidentifiers
-    schema: null
     type: BASE TABLE
   - columns:
     - comment: An internal and unique identifier for an individual to support identification
@@ -378,16 +341,13 @@ schemas:
       this table after the [schema:Person](https://schema.org/Person) data model to
       some degree, for broader compatibility.
     constraints:
-    - columns:
-      - individualid
-      comment: The primary key for the table (comes with indexing as well).
+    - comment: The primary key for the table (comes with indexing as well).
       ddl: PRIMARY KEY(individualid)
       name: individual_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: individuals
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: The unique internal identifier for the institution.
@@ -419,27 +379,18 @@ schemas:
       to collaboration institutions, manufacturers, suppliers and research or operational
       dairy farms.
     constraints:
-    - columns:
-      - institutionid
-      comment: Primary key for the institutions table (expects to be unique)
+    - comment: Primary key for the institutions table (expects to be unique)
       ddl: PRIMARY KEY(institutionid)
       name: institutionid_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns:
-      - superceedingrecord
-      comment: Allows for institutions to be renamed, or get switched over time.
+    - comment: Allows for institutions to be renamed, or get switched over time.
       ddl: FOREIGN KEY (superceedingrecord) REFERENCES institutions(institutionid)
       name: institution_superceeding_fk
-      references:
-        columns:
-        - institutionid
-        schema: dairy
-        table: institutions
+      reference: []
       type: REFERENCES
     indexes: []
     name: institutions
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: An internal, unique string to indentify a particular instrument in
@@ -471,28 +422,19 @@ schemas:
       type: datetime
     comment: A particular instrument, with a particular location.
     constraints:
-    - columns:
-      - instrumentid
-      - location
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: PRIMARY KEY (instrumentid,location)
       name: instrumantinstance_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns: []
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (instrumentid) REFERENCES instruments(instrumentid) ON UPDATE
         CASCADE ON DELETE CASCADE
       name: instrumentid_fk
-      references:
-        columns:
-        - instrumentid
-        schema: dairy
-        table: instruments
+      reference: []
       type: REFERENCES
     indexes: []
     name: instrumentinstance
-    schema: null
     type: BASE TABLE
   - columns:
     - comment: An internal, unique string to indentify a particular instrument in
@@ -530,7 +472,6 @@ schemas:
     constraints: []
     indexes: []
     name: instrumentowners
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: An internal, unique string to indentify a particular instrument in
@@ -590,55 +531,34 @@ schemas:
       to documentation and workflow management. The design of this table and its associated
       foreign key links is based on the [RDA PIDINST v1.0](https://zenodo.org/records/6396467#.YkQxzRBBwlw).
     constraints:
-    - columns:
-      - instrumentid
-      comment: The PRIMARY KEY for this table is a UUID7, which is unordered and globally
+    - comment: The PRIMARY KEY for this table is a UUID7, which is unordered and globally
         unique. This is not the same as the UPC or serial number, and should be used
         only for internal reference.
       ddl: PRIMARY KEY (instrumentid)
       name: instrument_pkey
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns:
-      - instrumentid
-      comment: In the event an instrument is re-defined somehow -- when a value is
+    - comment: In the event an instrument is re-defined somehow -- when a value is
         overwritten -- this hierarchical key will point to the new information.
       ddl: FOREIGN KEY (superceedingrecordid) REFERENCES instruments(instrumentid)
         ON UPDATE CASCADE ON DELETE CASCADE
       name: superceeding_fkey
-      references:
-        columns:
-        - instrumentid
-        schema: dairy
-        table: instruments
+      reference: []
       type: REFERENCES
-    - columns:
-      - manufacturerid
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (manufacturerid) REFERENCES institutions(institutionid) ON
         UPDATE CASCADE
       name: manufacturer_fkey
-      references:
-        columns:
-        - institutionid
-        schema: dairy
-        table: institutions
+      reference: []
       type: REFERENCES
-    - columns:
-      - supplierid
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (supplierid) REFERENCES institutions(institutionid) ON UPDATE
         CASCADE
       name: supplier_fkey
-      references:
-        columns:
-        - institutionid
-        schema: dairy
-        table: institutions
+      reference: []
       type: REFERENCES
     indexes: []
     name: instruments
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a keyword/source pair in the database.
@@ -679,27 +599,18 @@ schemas:
       these terms are linked to external resources, such as ontologies or subject
       schema.
     constraints:
-    - columns:
-      - keywordid
-      - sourceid
-      comment: Primary key for the keywords table (expects to be unique)
+    - comment: Primary key for the keywords table (expects to be unique)
       ddl: PRIMARY KEY(keywordid, sourceid)
       name: keywordid_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
-    - columns: []
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (sourceid) REFERENCES externaldatabases(databaseid)
       name: keywordsource_fk
-      references:
-        columns:
-        - databaseid
-        schema: dairy
-        table: externaldatabases
+      reference: []
       type: REFERENCES
     indexes: []
     name: keywords
-    schema: dairy
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a publication in the database.
@@ -733,30 +644,19 @@ schemas:
       type: datetime
     comment: Linking publications to associated keywords.
     constraints:
-    - columns: []
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (publicationid) REFERENCES publications(publicationid) ON UPDATE
         CASCADE
       name: publication_fkey
-      references:
-        columns:
-        - publicationid
-        schema: dairy
-        table: publications
+      reference: []
       type: REFERENCES
-    - columns: []
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: FOREIGN KEY (keywordid) REFERENCES keywords(keywordid) ON UPDATE CASCADE
       name: keyword_fkey
-      references:
-        columns:
-        - keywordid
-        schema: dairy
-        table: keywords
+      reference: []
       type: REFERENCES
     indexes: []
     name: publicationkeywords
-    schema: null
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a publication in the database.
@@ -809,17 +709,15 @@ schemas:
       in its inclusion because much of the material will be imported through bulk-import
       processes.
     constraints:
-    - columns:
-      - publicationid
-      comment: No comment provided.
+    - comment: No comment provided.
       ddl: PRIMARY KEY (publicationid)
       name: publication_pk
-      references: null
+      reference: []
       type: PRIMARY KEY
     indexes: []
     name: publications
-    schema: dairy
     type: BASE TABLE
-- comment: The schema used for application specific tables, views and materialized views.
+- comment: The schema used for application specific tables, views and materialized
+    views.
   name: apps
   tables: []
