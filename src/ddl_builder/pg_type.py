@@ -12,7 +12,7 @@ safe to inject verbatim with ``psycopg.sql.SQL``.
 
 import os
 import re
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import yaml
@@ -74,7 +74,7 @@ def _override_path() -> Path | None:
     return candidate if candidate.is_file() else None
 
 
-@lru_cache(maxsize=None)
+@cache
 def _lookup(bundled_path: str, override_path: str | None) -> dict[str, str]:
     """Build a case-insensitive ``spelling -> canonical`` lookup table."""
     bundled: dict[str, list[str]] = _load_yaml(Path(bundled_path))
