@@ -76,7 +76,8 @@ class Index(index_dict):
     def index_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('')
         if self.comment:
-            clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
+            clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}').format(
+                sql.Identifier(self.name), sql.Literal(self.comment))
         return clause
 
 class Table(table_dict):

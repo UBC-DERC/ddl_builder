@@ -1,6 +1,5 @@
 from ddl_builder import Column
 
-
 def test_column_clause_nullable_default():
     # The default should render without the not null constraint.
     col = Column(name="id", type="integer", comment = "Test comment")
