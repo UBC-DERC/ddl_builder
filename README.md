@@ -1,3 +1,10 @@
+[![core_actions](https://github.com/UBC-DERC/ddl_builder/actions/workflows/validation.yml/badge.svg)](https://github.com/UBC-DERC/ddl_builder/actions/workflows/validation.yml)
+
+[![lifecycle](https://img.shields.io/badge/lifecycle-alpha-orange.svg)]()
+
+[![](https://img.shields.io/badge/MIT-green?style=for-the-badge)](LICENSE.md)
+
+
 # DDL Builder
 
 Given a database, defined using the YAML template in the `data_model` repository, the DDL Builder repository is designed to create the database DDL (the SQL definition of the database structure). The goal of this repository is to provide a testing environment for our data models, and to help provide a toolset to manage ongoing changes to the database as the data model evolves over time.
