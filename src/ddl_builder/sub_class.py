@@ -27,15 +27,22 @@ class Constraint(constraint_dict):
         if not self.name or self.name == "":
             raise ValueError("Constraint must have a name.")
         return self
+    @model_validator(mode="after")
+    def validate_constraint_dll(self) -> constraint_dict:
+        if not self.ddl or self.ddl == "":
+            raise ValueError("Constraint must have a DDL statement.")
+        return self
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
-        if self.comment:
+        if self.ddl and not self.ddl.strip().endswith(";"):
+            clause = clause + sql.SQL(obj=';')
+        if self.comment and self.comment != "":
             clause: Composed = (clause + sql.SQL('\n') +
                 sql.SQL('COMMENT CONSTRAINT {} is {}')
                     .format(sql.Identifier(self.name), sql.Literal(self.comment)) +
                         sql.SQL(';'))
         else:
-            clause: Composed = clause + sql.SQL(obj=';')
+            clause: Composed = clause + sql.SQL(obj='')
         return clause
 
 class Column(column_dict):
@@ -74,8 +81,8 @@ class Column(column_dict):
 class Index(index_dict):
     """Index - Inherits from data_model class `index_dict`."""
     def index_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('')
-        if self.comment:
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('\n')
+        if self.comment and self.comment != "":
             clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}').format(
                 sql.Identifier(self.name), sql.Literal(self.comment))
         return clause

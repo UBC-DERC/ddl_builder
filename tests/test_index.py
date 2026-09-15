@@ -11,9 +11,9 @@ def btree_index_with_comment():
 
 
 def test_index_clause(btree_index):
-    expected_clause = 'CREATE INDEX idx_name ON users (name);'
+    expected_clause = 'CREATE INDEX idx_name ON users (name);\n'
     assert btree_index.index_clause().as_string() == expected_clause
 
 def test_index_with_comment(btree_index_with_comment):
-    expected_clause = 'CREATE INDEX idx_name ON users (name);COMMENT ON INDEX \"idx_name\" IS \'This is an index.\''
+    expected_clause = 'CREATE INDEX idx_name ON users (name);\nCOMMENT ON INDEX \"idx_name\" IS \'This is an index.\''
     assert btree_index_with_comment.index_clause().as_string() == expected_clause
