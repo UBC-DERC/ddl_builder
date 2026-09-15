@@ -36,7 +36,7 @@ def test_fk_without_reference_is_rejected():
             "reference": [],
             "comment": "A test",
             "name": "test_constraint"})
-        
+
 def test_fk_with_reference_parses():
     # The counter example to the above.
     c = Constraint.model_validate({

@@ -18,7 +18,7 @@ class Cownection:
        Some things to keep in mind, we should always be able to access the base `postgres`
        database, but should also support switching between databases (if we start in postgres and
        then create the new database).
-    """    
+    """
     name: str
     user: str
     password: str
@@ -44,7 +44,7 @@ class Cownection:
 
         Returns:
             _type_: _description_
-        """        
+        """
         try:
             conn: Connection[tuple[Any, ...]] = psycopg.connect(**self.connstring(name))
         except psycopg.ProgrammingError as e:

@@ -14,7 +14,7 @@ class StrictModel(BaseModel):
 
     Args:
         BaseModel (_BaseModel_): _Part of the Pydantic setup._
-    """    
+    """
     model_config = ConfigDict(strict=True)
 
 class Reference(StrictModel):
@@ -41,13 +41,13 @@ def needs_name(self)-> str:
 
     Returns:
         str: _description_
-    """    
+    """
     pattern = r'^[a-z_]+$'
     match = re.match(pattern, self) is not None
     if not match:
         raise ValueError("Object name must contain only lowercase letters or an underscore.")
     return self
-    
+
 class ConstraintEnum(str, Enum):
     check = 'CHECK'
     unique = 'UNIQUE'
@@ -67,7 +67,7 @@ class Constraint(StrictModel):
         # Treat REFERENCES as an alias for FOREIGN KEY
         if self.type == ConstraintEnum.references:
             self.type = ConstraintEnum.foreign_key
-        
+
         if self.type == ConstraintEnum.foreign_key and self.reference == []:
             raise ValueError("A FOREIGN KEY requires a valid reference.")
         return self
@@ -116,7 +116,7 @@ class Index(StrictModel):
     reference:list[Reference] = []
     def index_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('')
-        if self.comment: 
+        if self.comment:
             clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
         return clause
 

@@ -59,8 +59,8 @@ def read_yaml(filepath:Path)->DDL_Dict:
 
     Returns:
         object: _The YAML object rendered as a python Dict._
-    """    
-    with open(filepath, 'r') as fp:
+    """
+    with open(filepath) as fp:
         try:
             yaml_object = yaml.safe_load(fp)
         except yaml.YAMLError as exc:
