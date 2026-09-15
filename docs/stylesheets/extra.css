@@ -1,0 +1,145 @@
+/* ==========================================================================
+   DERC Data Model — custom theme
+   Brand palette (UBC): deep blue #002145, mid blue #2F5D7C, pale #C3D0DB.
+   Goals: cohesive brand look + WCAG-friendly contrast, focus, and motion.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Colour schemes
+   Material exposes light ("default") and dark ("slate") schemes via the
+   [data-md-color-scheme] attribute. We set custom brand colours for each and
+   make sure interactive colours keep ~4.5:1 contrast against their background.
+   -------------------------------------------------------------------------- */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        #002145;
+  --md-primary-fg-color--light: #2F5D7C;
+  --md-primary-fg-color--dark:  #001631;
+  --md-accent-fg-color:         #1f4d6b; /* links / hover — passes AA on white */
+
+  --md-typeset-a-color:         #1f4d6b;
+}
+
+[data-md-color-scheme="slate"] {
+  /* Lighten interactive colours so they stay legible on the dark background. */
+  --md-primary-fg-color:        #0a2f50;
+  --md-primary-fg-color--light: #C3D0DB;
+  --md-primary-fg-color--dark:  #001631;
+  --md-accent-fg-color:         #9ec6e0; /* light blue — passes AA on slate */
+
+  --md-typeset-a-color:         #9ec6e0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Typography & readability
+   Slightly roomier line-height and a comfortable max measure improve
+   readability for long-form documentation.
+   -------------------------------------------------------------------------- */
+.md-typeset {
+  line-height: 1.65;
+}
+
+.md-typeset h1,
+.md-typeset h2 {
+  letter-spacing: -0.01em;
+}
+
+/* Give long-form prose a comfortable reading measure without affecting tables,
+   code, or the API reference layout. */
+.md-typeset > p,
+.md-typeset > ul,
+.md-typeset > ol {
+  max-width: 46rem;
+}
+
+/* --------------------------------------------------------------------------
+   3. Links — never rely on colour alone (WCAG 1.4.1: use of colour)
+   Underline links within body text so they are distinguishable for users with
+   colour-vision deficiencies, while keeping nav/toc/buttons clean.
+   -------------------------------------------------------------------------- */
+.md-typeset a {
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+.md-typeset a:not(.md-button):hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   4. Keyboard focus — visible focus ring (WCAG 2.4.7: focus visible)
+   A clear, high-contrast outline for keyboard users on every interactive
+   element. :focus-visible keeps it from showing on mouse clicks.
+   -------------------------------------------------------------------------- */
+a:focus-visible,
+button:focus-visible,
+.md-nav__link:focus-visible,
+.md-tabs__link:focus-visible,
+.md-search__input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   5. Tables — the generated DB/API tables are dense; make them scan-able.
+   -------------------------------------------------------------------------- */
+.md-typeset table:not([class]) {
+  font-size: 0.78rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Zebra striping aids row tracking; uses theme tokens so it adapts to dark mode. */
+.md-typeset table:not([class]) tr:nth-child(2n) {
+  background-color: var(--md-default-fg-color--lightest);
+}
+
+/* --------------------------------------------------------------------------
+   6. Code & API reference polish
+   -------------------------------------------------------------------------- */
+.md-typeset code {
+  border-radius: 0.2rem;
+}
+
+/* Add breathing room and a left accent to each documented symbol so the API
+   reference reads as distinct entries. */
+.md-typeset .doc-heading {
+  scroll-margin-top: 4rem;
+}
+
+.doc.doc-object + .doc.doc-object {
+  margin-top: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   7. Reduced motion (WCAG 2.3.3 / respects prefers-reduced-motion)
+   Material's "instant navigation" and scrolling can animate; honour users who
+   ask the OS to minimise motion.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Forced-colors / Windows High Contrast mode support
+   -------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  a:focus-visible,
+  button:focus-visible,
+  .md-nav__link:focus-visible {
+    outline: 3px solid CanvasText;
+  }
+}
