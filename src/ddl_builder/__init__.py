@@ -13,19 +13,16 @@ from .server_class import Cownection
 from .sub_class import (
     Column,
     Constraint,
-    ConstraintEnum,
     D3Database,
     Index,
     Reference,
     Schema,
-    StrictModel,
     Table,
 )
 
 __all__ = [
     "Column",
     "Constraint",
-    "ConstraintEnum",
     "Cownection",
     "D3Database",
     "DDL_Dict",

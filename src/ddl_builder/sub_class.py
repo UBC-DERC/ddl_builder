@@ -1,90 +1,53 @@
-import re
-from enum import Enum
-from typing import Annotated, LiteralString, Self, cast
+from typing import LiteralString, cast
 
+from data_model.object_classes import (
+    DDL_Dict,
+    column_dict,
+    constraint_dict,
+    index_dict,
+    reference_dict,
+    schema_dict,
+    table_dict,
+)
 from psycopg import sql
 from psycopg.sql import Composed
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
+from pydantic import model_validator
 
 from .pg_type import pg_type
 
 
-class StrictModel(BaseModel):
-    """_Modification of the Base Model, no type conversion._
+class Reference(reference_dict):
+    """Reference - Inherits from data_model class `reference_dict`."""
+    pass
 
-    Args:
-        BaseModel (_BaseModel_): _Part of the Pydantic setup._
-    """    
-    model_config = ConfigDict(strict=True)
-
-class Reference(StrictModel):
-    """_Table Reference_
-
-    A class to manage references between (or within) tables in the database.
-
-    Args:
-        table (_str_): _A valid table within the schema._
-        column (_str_): A valid column within the table._
-    """
-    model_config = ConfigDict(populate_by_name=True)
-    db_schema: str | None = Field(default=None, alias="schema")
-    table:str
-    column:str
-
-def needs_name(self)-> str:
-    """_Check that the name provided is valid._
-
-    We are establishing an internal style where 
-
-    Raises:
-        ValueError: _Raises a ValueError if the provided name does not meet the requirements._
-
-    Returns:
-        str: _description_
-    """    
-    pattern = r'^[a-z_]+$'
-    match = re.match(pattern, self) is not None
-    if not match:
-        raise ValueError("Object name must contain only lowercase letters or an underscore.")
-    return self
-    
-class ConstraintEnum(str, Enum):
-    check = 'CHECK'
-    unique = 'UNIQUE'
-    unique_nulls_not_distinct = 'UNIQUE NULLS NOT DISTINCT'
-    primary_key = 'PRIMARY KEY'
-    references = 'REFERENCES'
-    foreign_key = 'FOREIGN KEY'
-
-class Constraint(StrictModel):
-    ddl: str | None = None
-    name: Annotated[str, AfterValidator(needs_name)]
-    comment:str
-    type:Annotated[ConstraintEnum, Field(strict=False)] = ConstraintEnum.check
-    reference:list[Reference] = []
-    @model_validator(mode='after')
-    def right_reference(self)-> Self:
-        # Treat REFERENCES as an alias for FOREIGN KEY
-        if self.type == ConstraintEnum.references:
-            self.type = ConstraintEnum.foreign_key
-        
-        if self.type == ConstraintEnum.foreign_key and self.reference == []:
-            raise ValueError("A FOREIGN KEY requires a valid reference.")
+class Constraint(constraint_dict):
+    """Constraint - Inherits from data_model class `constraint_dict`."""
+    @model_validator(mode="after")
+    def validate_constraint_name(self) -> constraint_dict:
+        if not self.name or self.name == "":
+            raise ValueError("Constraint must have a name.")
         return self
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.comment:
-            clause: Composed = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment)) + sql.SQL(';')
+            clause: Composed = (clause + sql.SQL('\n') +
+                sql.SQL('COMMENT CONSTRAINT {} is {}')
+                    .format(sql.Identifier(self.name), sql.Literal(self.comment)) +
+                        sql.SQL(';'))
         else:
             clause: Composed = clause + sql.SQL(obj=';')
         return clause
 
-class Column(StrictModel):
-    name: Annotated[str, AfterValidator(needs_name)]
-    type:str
-    comment:str
-    nullable:bool = True
-    def column_clause(self, alter:bool = False, table:str | None = None, schema:str | None = None) -> sql.Composed:
+class Column(column_dict):
+    @model_validator(mode="after")
+    def validate_column_comment(self) -> column_dict:
+        if not self.comment or self.comment == "":
+            raise ValueError("Column must have a comment.")
+        return self
+    """Column - Inherits from data_model class `column_dict`."""
+    def column_clause(self, alter:bool = False,
+                      table:str | None = None,
+                      schema:str | None = None) -> sql.Composed:
         if alter:
             if table is None or schema is None:
                 raise ValueError("Altering a column requires both table and schema names.")
@@ -108,22 +71,16 @@ class Column(StrictModel):
             clause = sql.SQL('{} NOT NULL').format(clause)
         return clause
 
-class Index(StrictModel):
-    name: Annotated[str, AfterValidator(needs_name)]
-    comment:str
-    type:str
-    ddl:str
-    reference:list[Reference] = []
+class Index(index_dict):
+    """Index - Inherits from data_model class `index_dict`."""
     def index_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL('')
-        if self.comment: 
+        if self.comment:
             clause = clause + sql.SQL('COMMENT ON INDEX {} IS {}')
         return clause
 
-class Table(StrictModel):
-    name: Annotated[str, AfterValidator(needs_name)]
-    type: str = 'BASE TABLE'
-    comment: str
+class Table(table_dict):
+    """Table - Inherits from data_model class `table_dict`."""
     columns: list[Column] = []
     constraints: list[Constraint] = []
     indexes: list[Index] = []
@@ -139,28 +96,20 @@ class Table(StrictModel):
             sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment))
         return clause
 
-class Schema(StrictModel):
-    name: Annotated[str, AfterValidator(needs_name)]
+class Schema(schema_dict):
+    """Schema - Inherits from data_model class `schema_dict`."""
     tables: list[Table] = []
-    comment: str
     def schema_clause(self) -> sql.Composed:
         clause: Composed = sql.SQL('CREATE SCHEMA {}').format(sql.Identifier(self.name))
         return clause + sql.SQL(";")
 
-class D3Database(StrictModel):
+class D3Database(DDL_Dict):
     schemas: list[Schema] = []
-    name: Annotated[str, AfterValidator(needs_name)]
-    comment: str | None = None
-    owner: str = 'postgres'
-    extensions: list[str] = []
-    encoding: str = 'UTF8'
-    locale: str = 'en_CA'
     def database_clause(self) -> sql.Composed:
         clause: Composed = sql.SQL("""
-                         CREATE DATABASE {} OWNER = {} ENCODING={} LOCALE={} TEMPLATE='template0'
+                         CREATE DATABASE {} ENCODING={} LOCALE={} TEMPLATE='template0'
                          """).format(
             sql.Identifier(self.name),
-            sql.Identifier(self.owner),
             sql.Literal(self.encoding),
             sql.Literal(self.locale)
         )
@@ -168,6 +117,7 @@ class D3Database(StrictModel):
     def extension_clauses(self) -> list[sql.Composed]:
         clauses: list[Composed] = []
         for ext in self.extensions:
-            clause: Composed = sql.SQL('CREATE EXTENSION IF NOT EXISTS {}').format(sql.Identifier(ext))
+            clause: Composed = (sql.SQL('CREATE EXTENSION IF NOT EXISTS {}')
+                .format(sql.Identifier(ext)))
             clauses.append(clause + sql.SQL(";"))
         return clauses

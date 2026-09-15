@@ -20,7 +20,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("entry", help="Path to the YAML file.")
     parser.add_argument("-o", "--output", required=True, help="Path for the composite output SQL.")
-    parser.add_argument("-d", "--docs", required=True, default="./docs", help="Path for the documentation output.")
+    parser.add_argument("-d", "--docs",
+                        required=True,
+                        default="./docs", help="Path for the documentation output.")
     return parser
 
 def main(argv: list[str] | None = None) -> int:
