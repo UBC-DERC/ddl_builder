@@ -35,7 +35,7 @@ class Constraint(constraint_dict):
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.ddl and not self.ddl.strip().endswith(";"):
-            clause = clause + sql.SQL(obj=';')
+            clause: Composed  = clause + sql.SQL(obj=';')
         if self.comment and self.comment != "":
             clause: Composed = (clause + sql.SQL('\n') +
                 sql.SQL('COMMENT CONSTRAINT {} is {}')
