@@ -1,9 +1,11 @@
 [project]
 name = "ddl-builder"
 version = "0.1.0"
-description = "A tool to read valid yaml and create a database from the YAML."
+description = "Generate PostgreSQL DDL from YAML data model definitions"
 readme = "README.md"
+license = { file = "LICENSE.md" }
 authors = [{ name = "Simon Goring", email = "simon.goring@ubc.ca" }]
+maintainers = [{ name = "Simon Goring", email = "simon.goring@ubc.ca" }]
 requires-python = ">=3.12"
 dependencies = [
     "data-model",
@@ -16,8 +18,39 @@ dependencies = [
     "pyyaml>=6.0.3",
 ]
 
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Software Development :: Code Generators",
+    "Typing :: Typed",
+]
+
+keywords = [
+    "postgresql",
+    "ddl",
+    "sql",
+    "yaml",
+    "database",
+    "schema",
+    "code-generation",
+]
+
 [project.scripts]
 ddl-builder = "ddl_builder:main"
+
+[project.urls]
+Homepage = "https://github.com/UBC-DERC/ddl_builder"
+Documentation = "https://ubc-derc.github.io/ddl_builder"
+Repository = "https://github.com/UBC-DERC/ddl_builder.git"
+Issues = "https://github.com/UBC-DERC/ddl_builder/issues"
+Changelog = "https://github.com/UBC-DERC/ddl_builder/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]
