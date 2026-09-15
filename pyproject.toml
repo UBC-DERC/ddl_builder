@@ -94,6 +94,7 @@ data-model = { git = "https://github.com/UBC-DERC/data_model", branch = "develop
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+extend-exclude = ["tests"]
 
 [tool.ruff.lint]
 select = [

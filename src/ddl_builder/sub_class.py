@@ -11,7 +11,7 @@ from data_model.object_classes import (
 )
 from psycopg import sql
 from psycopg.sql import Composed
-from pydantic import ValidationError, model_validator
+from pydantic import model_validator
 
 from .pg_type import pg_type
 
@@ -22,6 +22,11 @@ class Reference(reference_dict):
 
 class Constraint(constraint_dict):
     """Constraint - Inherits from data_model class `constraint_dict`."""
+    @model_validator(mode="after")
+    def validate_constraint_name(self) -> constraint_dict:
+        if not self.name or self.name == "":
+            raise ValueError("Constraint must have a name.")
+        return self
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.comment:
@@ -37,7 +42,7 @@ class Column(column_dict):
     @model_validator(mode="after")
     def validate_column_comment(self) -> column_dict:
         if not self.comment or self.comment == "":
-            raise ValidationError("Column must have a comment.")
+            raise ValueError("Column must have a comment.")
         return self
     """Column - Inherits from data_model class `column_dict`."""
     def column_clause(self, alter:bool = False,

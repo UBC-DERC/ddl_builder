@@ -13,36 +13,43 @@ schemas:
   tables:
   - columns:
     - comment: This is the unique identifier given to the cow by the Canadian Government.
+      default: null
       name: cadid
       nullable: true
       type: text
     - comment: We clearly identify the scheme from which the cow ID is coming from.
         It is implied  that this is the Canadian data scheme, but if this data is
         used in synthesis work  it is important to identify the source.
+      default: null
       name: cowschemeid
       nullable: true
       type: text
     - comment: Within the UBC dairy the cows are given ear tags with the numbering
         scheme YNNN where Y is the last number of the year (6 for 2026) and NNN is
         the birth order of the cow in a given year.
+      default: null
       name: localcowid
       nullable: true
       type: integer
     - comment: We record both male and female births in this database.
+      default: null
       name: gender
       nullable: true
       type: nchar(1)
     - comment: The weight of the cow at birth.
+      default: null
       name: birthweight
       nullable: true
       type: integer
     - comment: The cadid identifier for the dam. Should generally be constrained to
         be a valid identifer.
+      default: null
       name: damid
       nullable: true
       type: text
     - comment: My guess is that this is actually a pointer to another table, with
         some extra information.
+      default: null
       name: sireid
       nullable: true
       type: text
@@ -50,6 +57,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -58,6 +66,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -92,6 +101,7 @@ schemas:
         data type for these records so that the identifier can be located across all
         data tables (as opposed to an integer, which may be duplicated across multiple
         tables).
+      default: null
       name: datasetid
       nullable: true
       type: uuid7
@@ -99,6 +109,7 @@ schemas:
         ARK or a different data object. Currently the choice is simply  one of the
         entries in the `externaldatabases` table, but this may  be limited to a subset
         in the future.
+      default: null
       name: identifier
       nullable: true
       type: text
@@ -106,6 +117,7 @@ schemas:
         constraint that the `identifier` and the `urlmask` should form a valid URL.
         In this case we should do some proper error/assertion responses to make sure
         we're getting things right.
+      default: null
       name: externaldatabaseid
       nullable: true
       type: uuid7
@@ -113,6 +125,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -121,6 +134,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -161,10 +175,12 @@ schemas:
     type: BASE TABLE
   - columns:
     - comment: References the uuid for the dataset metadata stored in the database.
+      default: null
       name: datasetid
       nullable: true
       type: uuid7
     - comment: A pointer to the publications table.
+      default: null
       name: publicationid
       nullable: true
       type: uuid7
@@ -211,14 +227,17 @@ schemas:
         data type for these records so that the identifier can be located across all
         data tables (as opposed to an integer, which may be duplicated across multiple
         tables).
+      default: null
       name: datasetid
       nullable: true
       type: uuid7
     - comment: A short name for the dataset used in summarizing its content.
+      default: null
       name: datasetname
       nullable: true
       type: text
     - comment: A longer form description of the dataset.
+      default: null
       name: datasetdescription
       nullable: true
       type: text
@@ -226,6 +245,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -234,6 +254,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -253,14 +274,17 @@ schemas:
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifier for an external database reference.
+      default: null
       name: databaseid
       nullable: true
       type: uuid7
     - comment: The name of the external database or data resource.
+      default: null
       name: externaldatabase
       nullable: true
       type: text
     - comment: A web address for this resource, a primary location.
+      default: null
       name: url
       nullable: true
       type: url
@@ -270,6 +294,7 @@ schemas:
         which case the URL mask should be `{identifier}` such that replacing the  identifier
         produces a valid URL. Thus, for a DOI, where the DOI itself is written `10.0000/0000000`,
         the mask will be `https://doi.org/{identifier}`.
+      default: null
       name: urlmask
       nullable: true
       type: url
@@ -277,6 +302,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -285,6 +311,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -300,14 +327,17 @@ schemas:
   - columns:
     - comment: An internal and unique identifier for an individual to support identification
         within the database.
+      default: null
       name: individualid
       nullable: true
       type: uuid7
     - comment: Text used as a valid identifier format (for example, DOIs or others).
+      default: null
       name: identifier
       nullable: true
       type: text
     - comment: A unique internal identifier for an external database reference.
+      default: null
       name: externaldatabaseid
       nullable: true
       type: uuid7
@@ -315,6 +345,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -323,6 +354,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -335,21 +367,25 @@ schemas:
   - columns:
     - comment: An internal and unique identifier for an individual to support identification
         within the database.
+      default: null
       name: individualid
       nullable: true
       type: uuid7
     - comment: Full name of an individual, in written order (i.e., as they would write
         their names)
+      default: null
       name: fullname
       nullable: true
       type: text
     - comment: This is the last name, family name, or singular name that would lead
         in a journal citation, or when the individual is formally addressed.
+      default: null
       name: formalname
       nullable: true
       type: text
     - comment: For individuals who have a preferred name that is not the same as their
         given name.
+      default: null
       name: preferredname
       nullable: true
       type: text
@@ -357,6 +393,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -365,12 +402,14 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
     - comment: In the case a record is replaced with an alternative record (for example
         an individual changes their name, but the "old" name remains in the publication
         list).
+      default: null
       name: superceedingrecordid
       nullable: true
       type: UUID7
@@ -391,6 +430,7 @@ schemas:
     type: BASE TABLE
   - columns:
     - comment: The unique internal identifier for the institution.
+      default: null
       name: institutionid
       nullable: true
       type: UUID7
@@ -398,6 +438,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -406,11 +447,13 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
     - comment: In the case a record is replaced with an alternative record (for example
         a manufacturer is sold to a new company).
+      default: null
       name: superceedingrecord
       nullable: true
       type: UUID7
@@ -446,11 +489,13 @@ schemas:
         the general sense. This is as opposed to specific instances of an instrument
         which would be identified with both the broader instrument, and the specific
         serial number.
+      default: null
       name: instrumentid
       nullable: true
       type: uuid-7
     - comment: More specific description of the positioning within the pen/barn. For
         example, "Halfway down the long side of the pen, 2m height"
+      default: null
       name: location
       nullable: true
       type: text
@@ -458,6 +503,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -466,6 +512,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -499,15 +546,18 @@ schemas:
         the general sense. This is as opposed to specific instances of an instrument
         which would be identified with both the broader instrument, and the specific
         serial number.
+      default: null
       name: instrumentid
       nullable: true
       type: uuid-7
     - comment: An internal and unique identifier for an individual to support identification
         within the database.
+      default: null
       name: individualid
       nullable: true
       type: uuid7
     - comment: The unique internal identifier for the institution.
+      default: null
       name: institutionid
       nullable: true
       type: UUID7
@@ -515,6 +565,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -523,6 +574,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -537,31 +589,37 @@ schemas:
         the general sense. This is as opposed to specific instances of an instrument
         which would be identified with both the broader instrument, and the specific
         serial number.
+      default: null
       name: instrumentid
       nullable: true
       type: uuid-7
     - comment: A general description for the particular instrument that can be used
         to easily  identify the instrument. Should include a technical description
         of the device and its capabilities.
+      default: null
       name: description
       nullable: true
       type: text
     - comment: The proper name by which the instrument is identified. The instrument
         may have other colloquial names.
+      default: null
       name: instrumentname
       nullable: true
       type: text
     - comment: Colloquial names used for the instrument. This field should be a text
         array to support multiple entries.
+      default: null
       name: instrumentcolloquialnames
       nullable: true
       type: text array
     - comment: The manufacturer of the product.
+      default: null
       name: manufacturerid
       nullable: true
       type: UUID7
     - comment: The organization through which the equipment was purchased (an alias
         for institution id).
+      default: null
       name: supplierid
       nullable: true
       type: UUID7
@@ -569,6 +627,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -577,11 +636,13 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
     - comment: In the case a record is replaced with an alternative record (for example
         a manufacturer is sold to a new company).
+      default: null
       name: superceedingrecordid
       nullable: true
       type: UUID7
@@ -642,16 +703,19 @@ schemas:
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a keyword/source pair in the database.
+      default: null
       name: keywordid
       nullable: true
       type: uuid7
     - comment: A keyword used to describe a thing in the database.
+      default: null
       name: keyword
       nullable: true
       type: text
     - comment: A unique internal indentifier for an external source for subjects or
         keywords. This may include sources such as WikiData, or the Library of Congress
         subject catalog.
+      default: null
       name: sourceid
       nullable: true
       type: uuid7
@@ -659,6 +723,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -667,11 +732,13 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
     - comment: In the case a record is replaced with an alternative record (for example
         a manufacturer is sold to a new company).
+      default: null
       name: superceedingrecord
       nullable: true
       type: UUID7
@@ -703,16 +770,19 @@ schemas:
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a publication in the database.
+      default: null
       name: publicationid
       nullable: true
       type: uuid7
     - comment: A unique internal identifer for a keyword/source pair in the database.
+      default: null
       name: keywordid
       nullable: true
       type: uuid7
     - comment: A unique internal indentifier for an external source for subjects or
         keywords. This may include sources such as WikiData, or the Library of Congress
         subject catalog.
+      default: null
       name: sourceid
       nullable: true
       type: uuid7
@@ -720,6 +790,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -728,6 +799,7 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
@@ -760,14 +832,17 @@ schemas:
     type: BASE TABLE
   - columns:
     - comment: A unique internal identifer for a publication in the database.
+      default: null
       name: publicationid
       nullable: true
       type: uuid7
     - comment: The article, or publication title.
+      default: null
       name: title
       nullable: true
       type: text
     - comment: A longer form description of the dataset.
+      default: null
       name: abstract
       nullable: true
       type: text
@@ -775,6 +850,7 @@ schemas:
         of tracking changes across the database, and supporting reproducibility of
         data and data models, by allowing users to "roll back" or search for the impacts
         of new changes or data additions.
+      default: null
       name: datecreated
       nullable: true
       type: datetime
@@ -783,10 +859,12 @@ schemas:
         of the data model. At present we are implementing the toolset, and providing
         the opportunity to see that a record was modified, not neccessarily how that
         record was modified.
+      default: null
       name: datemodified
       nullable: true
       type: datetime
     - comment: A valid BibTeX reference for a publication.
+      default: null
       name: bibtex
       nullable: true
       type: jsonb
@@ -794,6 +872,7 @@ schemas:
         start and end date as a convention to manage uncertainty. In a case where
         only year is known, we assign dates beginning at XXXX-01-01 and an end date
         of XXXX-12-31.
+      default: null
       name: datepublishedstart
       nullable: true
       type: datetime
@@ -801,6 +880,7 @@ schemas:
         use start and end date as a convention to manage uncertainty. In a case where
         only year is known, we assign dates beginning at XXXX-01-01 and an end date
         of XXXX-12-31. '
+      default: null
       name: datepublishedend
       nullable: true
       type: datetime

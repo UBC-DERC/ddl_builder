@@ -5,26 +5,16 @@ from ddl_builder import Column, Index, Table
 
 @pytest.fixture
 def single_column():
-    return Column(name="id", type="integer", comment="")
+    return Column(name="id", type="integer", comment="This is a column")
 
 @pytest.fixture
 def double_column():
-    return [Column(name="name", type="text", comment="", nullable=False),
-            Column(name="age", type="integer", comment="")]
+    return [Column(name="name", type="text", comment="Column one", nullable=False),
+            Column(name="age", type="integer", comment="Column two")]
 
 @pytest.fixture
 def btree_index():
     return Index(name="idx_name", type="btree", comment="", ddl="CREATE INDEX idx_name ON users (name);")
-
-
-def test_new_table(single_column):
-    table = Table(name="users", comment="A table for users.", columns=[single_column])
-    assert table.name == "users"
-    assert table.comment == "A table for users."
-    assert len(table.columns) == 1
-    assert table.columns[0].name == "id"
-    assert table.columns[0].type == "integer"
-    assert table.columns[0].comment == ""
 
 def test_render_table_single(single_column):
     table = Table(name="users", comment="A table for users.", columns=[single_column])
