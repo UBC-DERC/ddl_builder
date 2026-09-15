@@ -143,7 +143,7 @@ schemas:
         - datasetid
         schema: dairy
         table: datasets
-      type: REFERENCES
+      type: FOREIGN KEY
     - columns: []
       comment: Foreign key reference to external databases or resources.
       ddl: FOREIGN KEY (externaldatabaseid) REFERENCES externaldatabases(externaldatabaseid)
@@ -154,7 +154,7 @@ schemas:
         - databaseid
         schema: dairy
         table: externaldatabases
-      type: REFERENCES
+      type: FOREIGN KEY
     indexes: []
     name: datasetidentifiers
     schema: dairy
@@ -180,7 +180,7 @@ schemas:
         - datasetid
         schema: dairy
         table: datasets
-      type: REFERENCES
+      type: FOREIGN KEY
     - columns: []
       comment: The foreign key referencing the publications table in the database.
       ddl: FOREIGN KEY (publicationid) REFERENCES publication(publicationid) ON UPDATE
@@ -191,7 +191,7 @@ schemas:
         - publicationid
         schema: dairy
         table: publications
-      type: REFERENCES
+      type: FOREIGN KEY
     - columns:
       - publicationid
       - datasetid
@@ -436,7 +436,7 @@ schemas:
         - institutionid
         schema: dairy
         table: institutions
-      type: REFERENCES
+      type: FOREIGN KEY
     indexes: []
     name: institutions
     schema: dairy
@@ -489,7 +489,7 @@ schemas:
         - instrumentid
         schema: dairy
         table: instruments
-      type: REFERENCES
+      type: FOREIGN KEY
     indexes: []
     name: instrumentinstance
     schema: null
@@ -611,7 +611,7 @@ schemas:
         - instrumentid
         schema: dairy
         table: instruments
-      type: REFERENCES
+      type: FOREIGN KEY
     - columns:
       - manufacturerid
       comment: No comment provided.
@@ -623,7 +623,7 @@ schemas:
         - institutionid
         schema: dairy
         table: institutions
-      type: REFERENCES
+      type: FOREIGN KEY
     - columns:
       - supplierid
       comment: No comment provided.
@@ -635,7 +635,7 @@ schemas:
         - institutionid
         schema: dairy
         table: institutions
-      type: REFERENCES
+      type: FOREIGN KEY
     indexes: []
     name: instruments
     schema: dairy
@@ -696,7 +696,7 @@ schemas:
         - databaseid
         schema: dairy
         table: externaldatabases
-      type: REFERENCES
+      type: FOREIGN KEY
     indexes: []
     name: keywords
     schema: dairy
@@ -743,7 +743,7 @@ schemas:
         - publicationid
         schema: dairy
         table: publications
-      type: REFERENCES
+      type: FOREIGN KEY
     - columns: []
       comment: No comment provided.
       ddl: FOREIGN KEY (keywordid) REFERENCES keywords(keywordid) ON UPDATE CASCADE
@@ -753,7 +753,7 @@ schemas:
         - keywordid
         schema: dairy
         table: keywords
-      type: REFERENCES
+      type: FOREIGN KEY
     indexes: []
     name: publicationkeywords
     schema: null
@@ -820,6 +820,9 @@ schemas:
     name: publications
     schema: dairy
     type: BASE TABLE
-- comment: The schema used for application specific tables, views and materialized views.
+- comment: 'The schema used for application specific tables, views and materialized
+    views.
+
+    '
   name: apps
   tables: []

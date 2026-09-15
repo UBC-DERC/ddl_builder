@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import yaml
+from data_model.object_classes import DDL_Dict
 from pydantic import BaseModel, ConfigDict, Field
 
 

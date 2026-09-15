@@ -348,9 +348,6 @@ dev = [
     { name = "ruff" },
     { name = "ty" },
 ]
-docs = [
-    { name = "mkdocs-material" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -378,7 +375,6 @@ dev = [
     { name = "ruff", specifier = ">=0.15.22" },
     { name = "ty", specifier = ">=0.0.61" },
 ]
-docs = [{ name = "mkdocs-material", specifier = ">=9.7.7" }]
 
 [[package]]
 name = "editorconfig"
