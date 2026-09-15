@@ -25,7 +25,10 @@ class Constraint(constraint_dict):
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.comment:
-            clause: Composed = clause + sql.SQL('\n') + sql.SQL('COMMENT CONSTRAINT {} is {}').format(sql.Identifier(self.name), sql.Literal(self.comment)) + sql.SQL(';')
+            clause: Composed = (clause + sql.SQL('\n') +
+                sql.SQL('COMMENT CONSTRAINT {} is {}')
+                    .format(sql.Identifier(self.name), sql.Literal(self.comment)) +
+                        sql.SQL(';'))
         else:
             clause: Composed = clause + sql.SQL(obj=';')
         return clause
@@ -37,7 +40,9 @@ class Column(column_dict):
             raise ValidationError("Column must have a comment.")
         return self
     """Column - Inherits from data_model class `column_dict`."""
-    def column_clause(self, alter:bool = False, table:str | None = None, schema:str | None = None) -> sql.Composed:
+    def column_clause(self, alter:bool = False,
+                      table:str | None = None,
+                      schema:str | None = None) -> sql.Composed:
         if alter:
             if table is None or schema is None:
                 raise ValueError("Altering a column requires both table and schema names.")
@@ -107,6 +112,7 @@ class D3Database(DDL_Dict):
     def extension_clauses(self) -> list[sql.Composed]:
         clauses: list[Composed] = []
         for ext in self.extensions:
-            clause: Composed = sql.SQL('CREATE EXTENSION IF NOT EXISTS {}').format(sql.Identifier(ext))
+            clause: Composed = (sql.SQL('CREATE EXTENSION IF NOT EXISTS {}')
+                .format(sql.Identifier(ext)))
             clauses.append(clause + sql.SQL(";"))
         return clauses
