@@ -35,15 +35,14 @@ class Constraint(constraint_dict):
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.ddl and not self.ddl.strip().endswith(";"):
-            clause: Composed  = clause + sql.SQL(obj=';')
-        if self.comment and self.comment != "":
-            clause: Composed = (clause + sql.SQL('\n') +
-                sql.SQL('COMMENT CONSTRAINT {} is {}')
-                    .format(sql.Identifier(self.name), sql.Literal(self.comment)) +
-                        sql.SQL(';'))
+            clause: Composed  = clause + sql.SQL("")
         else:
-            clause: Composed = clause + sql.SQL(obj='')
-        return clause
+            clause: Composed = clause + sql.SQL(";")
+        return clause + sql.SQL("\n")
+    def constraint_comments(self, schema:str, table:str) -> sql.Composed:
+        clause: Composed = sql.SQL('COMMENT ON CONSTRAINT {} ON {}.{} IS {}').format(
+            sql.Identifier(self.name), sql.Identifier(schema), sql.Identifier(table), sql.Literal(self.comment))
+        return clause + sql.SQL(";")
 
 class Column(column_dict):
     @model_validator(mode="after")
@@ -102,7 +101,9 @@ class Table(table_dict):
             clause: Composed = clause + i.column_clause() + sql.SQL(',\n\t')
         # No terminating comma here, so we can manage constraints as well.
         clause: Composed = clause + self.columns[-1].column_clause()
-        # Now we add constraints, if any. Note that we are not adding a comma before the first constraint, because the last column already has a comma.
+        # Now we add constraints, if any.
+        # Note that we are not adding a comma before the first constraint,
+        # because the last column already has a comma.
         if self.constraints and len(self.constraints) > 0:
             for i in self.constraints:
                 clause: Composed = clause + sql.SQL(',\n\t') + i.constraint_clause()
