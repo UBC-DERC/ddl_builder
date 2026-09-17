@@ -93,6 +93,8 @@ class Table(table_dict):
     constraints: list[Constraint] = []
     indexes: list[Index] = []
     def table_clause(self, schema:str) -> sql.Composed:
+        if len(self.columns) == 0:
+            raise ValueError("Table must have at least one column.")
         clause = sql.SQL('CREATE TABLE {}.{}(\n\t').format(
             sql.Identifier(schema),
             sql.Identifier(self.name))
