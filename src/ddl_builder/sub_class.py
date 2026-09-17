@@ -93,12 +93,12 @@ class Table(table_dict):
     constraints: list[Constraint] = []
     indexes: list[Index] = []
     def table_clause(self, schema:str) -> sql.Composed:
-        clause = sql.SQL('CREATE TABLE {}.{}').format(
+        clause = sql.SQL('CREATE TABLE {}.{}(\n\t').format(
             sql.Identifier(schema),
             sql.Identifier(self.name))
         for i in self.columns:
-            clause: Composed = clause + sql.SQL("\n") + i.column_clause()
-        return clause + sql.SQL(obj=';')
+            clause: Composed = clause + i.column_clause() + sql.SQL(',\n\t')
+        return clause + sql.SQL(obj=');')
     def table_comments(self, schema:str) -> sql.Composed:
         clause: Composed = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(
             sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment))
