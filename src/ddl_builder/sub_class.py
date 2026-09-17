@@ -100,8 +100,13 @@ class Table(table_dict):
             sql.Identifier(self.name))
         for i in self.columns[:-1]:
             clause: Composed = clause + i.column_clause() + sql.SQL(',\n\t')
-        clause: Composed = clause + self.columns[-1].column_clause() + sql.SQL('\n\t')
-        return clause + sql.SQL(obj=');')
+        # No terminating comma here, so we can manage constraints as well.
+        clause: Composed = clause + self.columns[-1].column_clause()
+        # Now we add constraints, if any. Note that we are not adding a comma before the first constraint, because the last column already has a comma.
+        if self.constraints and len(self.constraints) > 0:
+            for i in self.constraints:
+                clause: Composed = clause + sql.SQL(',\n\t') + i.constraint_clause()
+        return clause + sql.SQL(obj='\n\t);')
     def table_comments(self, schema:str) -> sql.Composed:
         clause: Composed = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(
             sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment))
