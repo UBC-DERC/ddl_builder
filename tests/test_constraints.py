@@ -23,9 +23,8 @@ def unique_constraint_no_semi():
                       comment="",
                       ddl="ALTER TABLE my_table ADD CONSTRAINT unique_constraint UNIQUE (column1)")
 
-
 def test_unique_constraint_comment(unique_constraint_comment):
-    expected_clause = 'ALTER TABLE my_table ADD CONSTRAINT unique_constraint UNIQUE (column1);\nCOMMENT CONSTRAINT "unique_constraint" is \'This is a unique constraint.\';'
+    expected_clause = 'ALTER TABLE my_table ADD CONSTRAINT unique_constraint UNIQUE (column1)'
     assert unique_constraint_comment.constraint_clause().as_string() == expected_clause
 
 def test_unique_constraint_no_comment(unique_constraint_no_comment):

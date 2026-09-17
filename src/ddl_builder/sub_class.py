@@ -32,16 +32,23 @@ class Constraint(constraint_dict):
         if not self.ddl or self.ddl == "":
             raise ValueError("Constraint must have a DDL statement.")
         return self
-    def constraint_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
-        if self.ddl and not self.ddl.strip().endswith(";"):
-            clause: Composed  = clause + sql.SQL("")
-        else:
-            clause: Composed = clause + sql.SQL(";")
-        return clause + sql.SQL("\n")
+    def constraint_clause(self, alter: bool = True) -> sql.Composed:
+        if not self.ddl:
+            raise ValueError("Constraint must have a DDL statement.")
+        if alter:
+            # We are altering the table after creation, not modifying it during creation.
+            clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl.rstrip(';')))
+            if self.ddl.strip().endswith(";"):
+                clause: Composed  = clause + sql.SQL("")
+            else:
+                clause: Composed = clause + sql.SQL(";")
+        return clause
     def constraint_comments(self, schema:str, table:str) -> sql.Composed:
         clause: Composed = sql.SQL('COMMENT ON CONSTRAINT {} ON {}.{} IS {}').format(
-            sql.Identifier(self.name), sql.Identifier(schema), sql.Identifier(table), sql.Literal(self.comment))
+            sql.Identifier(self.name),
+            sql.Identifier(schema),
+            sql.Identifier(table),
+            sql.Literal(self.comment))
         return clause + sql.SQL(";")
 
 class Column(column_dict):
