@@ -96,8 +96,9 @@ class Table(table_dict):
         clause = sql.SQL('CREATE TABLE {}.{}(\n\t').format(
             sql.Identifier(schema),
             sql.Identifier(self.name))
-        for i in self.columns:
+        for i in self.columns[:-1]:
             clause: Composed = clause + i.column_clause() + sql.SQL(',\n\t')
+        clause: Composed = clause + self.columns[-1].column_clause() + sql.SQL('\n\t')
         return clause + sql.SQL(obj=');')
     def table_comments(self, schema:str) -> sql.Composed:
         clause: Composed = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(

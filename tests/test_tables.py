@@ -13,13 +13,13 @@ def double_column():
 
 def test_render_table_single(single_column):
     table = Table(name="users", comment="A table for users.", columns=[single_column])
-    expected_clause = 'CREATE TABLE "public"."users"(\n\t"id" integer\n);'
+    expected_clause = 'CREATE TABLE "public"."users"(\n\t"id" integer\n\t);'
     print(table.table_clause(schema="public").as_string())
     assert table.table_clause(schema="public").as_string() == expected_clause
 
 
 def test_render_table_double_not_null(double_column):
     table = Table(name="users", comment="A table for users.", columns=double_column)
-    expected_clause = 'CREATE TABLE "public"."users"(\n\t"name" text NOT NULL\n\t"age" integer\n);'
+    expected_clause = 'CREATE TABLE "public"."users"(\n\t"name" text NOT NULL,\n\t"age" integer\n\t);'
     print(table.table_clause(schema="public").as_string())
     assert table.table_clause(schema="public").as_string() == expected_clause
