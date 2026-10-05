@@ -47,10 +47,6 @@ class Constraint(constraint_dict):
             # In this case the constraint is being defined inline, so we only use
             # the semi-colon at the end of processing each of the constraints.
             clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl.rstrip(';'))) + sql.SQL("")
-        if self.comment and self.comment != "":
-            clause = clause + sql.SQL(' COMMENT ON CONSTRAINT {} IS {}').format(
-                sql.Identifier(self.name), sql.Literal(self.comment))
-        return clause
     def constraint_comments(self, schema:str, table:str) -> sql.Composed:
         # These always happen after the table is created, and after the constraint
         # is added.
