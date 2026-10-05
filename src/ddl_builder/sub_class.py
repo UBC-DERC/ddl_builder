@@ -32,18 +32,28 @@ class Constraint(constraint_dict):
         if not self.ddl or self.ddl == "":
             raise ValueError("Constraint must have a DDL statement.")
         return self
-    def constraint_clause(self, alter: bool = True) -> sql.Composed:
+    def constraint_clause(self) -> sql.Composed:
         if not self.ddl:
             raise ValueError("Constraint must have a DDL statement.")
-        if alter:
+        if self.ddl.strip().startswith("ALTER TABLE"):
             # We are altering the table after creation, not modifying it during creation.
+            # So we need to have a semicolon (if it doesn't already).
             clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl.rstrip(';')))
             if self.ddl.strip().endswith(";"):
                 clause: Composed  = clause + sql.SQL("")
             else:
                 clause: Composed = clause + sql.SQL(";")
+        else:
+            # In this case the constraint is being defined inline, so we only use
+            # the semi-colon at the end of processing each of the constraints.
+            clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl.rstrip(';'))) + sql.SQL("")
+        if self.comment and self.comment != "":
+            clause = clause + sql.SQL(' COMMENT ON CONSTRAINT {} IS {}').format(
+                sql.Identifier(self.name), sql.Literal(self.comment))
         return clause
     def constraint_comments(self, schema:str, table:str) -> sql.Composed:
+        # These always happen after the table is created, and after the constraint
+        # is added.
         clause: Composed = sql.SQL('COMMENT ON CONSTRAINT {} ON {}.{} IS {}').format(
             sql.Identifier(self.name),
             sql.Identifier(schema),
@@ -112,9 +122,22 @@ class Table(table_dict):
         # Note that we are not adding a comma before the first constraint,
         # because the last column already has a comma.
         if self.constraints and len(self.constraints) > 0:
-            for i in self.constraints:
-                clause: Composed = clause + sql.SQL(',\n\t') + i.constraint_clause()
+            clause_add: list[Composed] = []
+            clause_append: list[Composed] = []
+            for c in self.constraints:
+                if not c.ddl:
+                    raise ValueError(f"Constraint {c.name} must have a DDL statement.")
+                if c.ddl.strip().startswith("ALTER TABLE"):
+                    # This is an "after the fact" constraint, so we don't add it here.
+                    clause_append.append(c.constraint_clause())
+                else:
+                    # This is an inline constraint, so we add it here.
+                    clause_add.append(c.constraint_clause())
+            for i in clause_add[:-1]:
+                clause: Composed = clause + i + sql.SQL(',\n\t')
+
         return clause + sql.SQL(obj='\n\t);')
+
     def table_comments(self, schema:str) -> sql.Composed:
         clause: Composed = sql.SQL('COMMENT ON TABLE {}.{} IS {}').format(
             sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment))
