@@ -9,7 +9,7 @@ We actively welcome your pull requests.
 
 ### For new validation or class structures
 
-1. Most of the class structures are adopted from the [`data_model` project](https://github.com/UBC-DERC/data_model). To change the underlying structure (as opposed to the DDL translation) check there first.
+1. Most of the class structures are adopted from the [`ddlml` project](https://github.com/UBC-DERC/ddlml). To change the underlying structure (as opposed to the DDL translation) check there first.
 2. Create a GitHub issue proposing a change to a class definition (you can stop here if you'd like).
 3. Fork the repo and create your branch from `main`.
 4. Modify the code as needed and add new tests to ensure your code runs as expected.

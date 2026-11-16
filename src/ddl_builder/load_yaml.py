@@ -1,10 +1,10 @@
 from pathlib import Path
 
 import yaml
-from data_model.object_classes import DDL_Dict
+from ddlml.object_classes import DDL_Dict
 
 
-def read_yaml(filepath:Path)->DDL_Dict:
+def read_yaml(filepath: Path) -> DDL_Dict:
     """_Read YAML file from path._
 
     Args:

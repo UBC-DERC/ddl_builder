@@ -5,6 +5,7 @@ artifact and the documentation. Validation failures are reported verbosely (all
 problems at once) to stderr and cause a non-zero exit code with no output
 written, so the tool can gate a deployment pipeline.
 """
+
 import argparse
 from pathlib import Path
 
@@ -20,10 +21,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("entry", help="Path to the YAML file.")
     parser.add_argument("-o", "--output", required=True, help="Path for the composite output SQL.")
-    parser.add_argument("-d", "--docs",
-                        required=True,
-                        default="./docs", help="Path for the documentation output.")
+    parser.add_argument(
+        "-d", "--docs", required=True, default="./docs", help="Path for the documentation output."
+    )
     return parser
+
 
 def main(argv: list[str] | None = None) -> int:
     """Run the CLI. Returns the process exit code (0 success, 1 on validation failure)."""
@@ -37,6 +39,6 @@ def main(argv: list[str] | None = None) -> int:
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as handle:
-        safe_dump(newDB.model_dump(by_alias=True, mode = "json"), handle)
+        safe_dump(newDB.model_dump(by_alias=True, mode="json"), handle)
     print(f"Wrote {args.output} and documentation to {args.docs}")
     return 0
