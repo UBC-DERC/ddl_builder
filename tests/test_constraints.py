@@ -7,6 +7,7 @@ def unique_constraint_comment():
     return Constraint(name="unique_constraint",
                       type="UNIQUE",
                       comment="This is a unique constraint.",
+                      columns=["column1"],
                       ddl="ALTER TABLE my_table ADD CONSTRAINT unique_constraint UNIQUE (column1);")
 
 @pytest.fixture
@@ -14,6 +15,7 @@ def unique_constraint_no_comment():
     return Constraint(name="unique_constraint",
                       type="UNIQUE",
                       comment="",
+                      columns=["column1"],
                       ddl="ALTER TABLE my_table ADD CONSTRAINT unique_constraint UNIQUE (column1);")
 
 @pytest.fixture
@@ -21,6 +23,7 @@ def unique_constraint_no_semi():
     return Constraint(name="unique_constraint",
                       type="UNIQUE",
                       comment="",
+                      columns=["column1"],
                       ddl="ALTER TABLE my_table ADD CONSTRAINT unique_constraint UNIQUE (column1)")
 
 

@@ -50,9 +50,7 @@ def _load_yaml(path: Path) -> dict[str, list[str]]:
     return data or {}
 
 
-def _merge(
-    bundled: dict[str, list[str]], override: dict[str, list[str]]
-) -> dict[str, list[str]]:
+def _merge(bundled: dict[str, list[str]], override: dict[str, list[str]]) -> dict[str, list[str]]:
     """Merge an override registry additively on top of the bundled one.
 
     The override may add new canonical types or append aliases to existing
@@ -78,9 +76,7 @@ def _override_path() -> Path | None:
 def _lookup(bundled_path: str, override_path: str | None) -> dict[str, str]:
     """Build a case-insensitive ``spelling -> canonical`` lookup table."""
     bundled: dict[str, list[str]] = _load_yaml(Path(bundled_path))
-    override: dict[str, list[str]] = (
-        _load_yaml(Path(override_path)) if override_path else {}
-    )
+    override: dict[str, list[str]] = _load_yaml(Path(override_path)) if override_path else {}
     merged: dict[str, list[str]] = _merge(bundled, override)
 
     lookup: dict[str, str] = {}
