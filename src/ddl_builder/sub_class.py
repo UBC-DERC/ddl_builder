@@ -31,6 +31,12 @@ class Constraint(constraint_dict):
             raise ValueError("Constraint must have a name.")
         return self
 
+    @model_validator(mode="after")
+    def validate_constraint_dll(self) -> constraint_dict:
+        if self.type in ["CHECK", "EXCLUDE"] and not self.ddl or self.ddl == "":
+            raise ValueError("CHECK and EXCLUDE constraints must have a DDL statement.")
+        return self
+
     def constraint_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.ddl and not self.ddl.strip().endswith(";"):
