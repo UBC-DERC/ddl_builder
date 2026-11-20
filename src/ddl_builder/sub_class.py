@@ -8,6 +8,7 @@ from ddlml.object_classes import (
     reference_dict,
     schema_dict,
     table_dict,
+    ConstraintType,
 )
 from psycopg import sql
 from psycopg.sql import Composed
@@ -33,12 +34,24 @@ class Constraint(constraint_dict):
 
     @model_validator(mode="after")
     def validate_constraint_dll(self) -> constraint_dict:
-        if self.type in ["CHECK", "EXCLUDE"] and not self.ddl or self.ddl == "":
+        if (self.type.check or self.type.exclude) and not (self.ddl or self.ddl == ""):
             raise ValueError("CHECK and EXCLUDE constraints must have a DDL statement.")
         return self
 
     def constraint_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
+        match self.type:
+            case ConstraintType.primary_key:
+                clause: Composed = sql.SQL("CONSTRAINT {} PRIMARY KEY ({})").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
+                )
+            case ConstraintType.unique:
+                clause: Composed = sql.SQL("CONSTRAINT {} UNIQUE ({})").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
+                )
+            case _:
+                clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.ddl and not self.ddl.strip().endswith(";"):
             clause: Composed = clause + sql.SQL(";")
         else:
