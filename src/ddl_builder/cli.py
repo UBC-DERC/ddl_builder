@@ -35,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
 
     yamlPath = Path(args.entry)
 
-    outcome = ddlml.load_database(yamlPath)
+    outcome = ddlml.load_database(str(object=yamlPath))
     newDB: D3Database = dlb.ddl_from_dict(model=outcome.database)
 
     output_path = Path(args.output)
