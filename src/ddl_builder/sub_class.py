@@ -50,6 +50,11 @@ class Constraint(constraint_dict):
                     sql.Identifier(self.name),
                     sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
                 )
+            case ConstraintType.unique_nulls_not_distinct:
+                clause: Composed = sql.SQL("CONSTRAINT {} UNIQUE NULLS NOT DISTINCT ({})").format(
+                                    sql.Identifier(self.name),
+                                    sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
+                                )
             case _:
                 clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
         if self.ddl and not self.ddl.strip().endswith(";"):

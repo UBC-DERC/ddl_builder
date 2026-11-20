@@ -94,3 +94,13 @@ def test_unique_constraint_two_columns_no_ddl():
                       columns=["first", "second"],
                       references = None)
     assert cstr.constraint_clause().as_string() == 'CONSTRAINT "pk_key" UNIQUE ("first", "second")'
+
+
+def test_unique_nn_constraint_two_columns_no_ddl():
+    cstr = Constraint(name="pk_key",
+                      type="UNIQUE NULLS NOT DISTINCT",
+                      comment="Hey there.",
+                      ddl = "",
+                      columns=["first", "second"],
+                      references = None)
+    assert cstr.constraint_clause().as_string() == 'CONSTRAINT "pk_key" UNIQUE NULLS NOT DISTINCT ("first", "second")'
