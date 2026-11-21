@@ -98,3 +98,15 @@ def test_foreign_key_constraint_clause_fails():
                       ddl="CONSTRAINT exclude EXCLUDE (bonus < 100)")
     with pytest.raises(ValueError):
         cstr.constraint_clause()
+
+def test_foreign_key_constraint_clause_fails():
+    cstr = Constraint(name="exclude",
+                      type="FOREIGN KEY",
+                      comment="Peanut",
+                      columns=["bonus"],
+                      references=Reference(table="banana", columns=["one"]),
+                      ddl="CONSTRAINT exclude EXCLUDE (bonus < 100)")
+    
+    fk_clause = cstr.fk_alter_table_clause(schema = "horse",
+                                           table = cstr.references.table)
+

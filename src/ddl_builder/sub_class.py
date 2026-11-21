@@ -80,13 +80,15 @@ class Constraint(constraint_dict):
         return clause + sql.SQL(";")
 
     def fk_alter_table_clause(self, schema: str, table: str) -> sql.Composed:
-        if not self.type.foregn_key:
+        if not self.type.foreign_key:
             raise ValueError(f"fk_alter cannot be run on a {self.type} constraint.")
-        if not self.reference:
+        if not self.references:
             raise ValueError(f"The {self.name!r} FOREIGN KEY constraint requires a table/column reference.")
 
         local_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.columns)
-        ref_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.reference.columns)
+        ref_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.references.columns)
+        print(self.references)
+        ref_schema = self.references.schema_ or schema
 
         return sql.SQL(
             "ALTER TABLE {schema}.{table} ADD CONSTRAINT {name} "
@@ -96,8 +98,8 @@ class Constraint(constraint_dict):
             table = sql.Identifier(table),
             name = sql.Identifier(self.name),
             local_cols = local_cols,
-            ref_schema = sql.Identifier(self.reference.schema),
-            ref_table = sql.Identifier(self.reference.table),
+            ref_schema = sql.Identifier(ref_schema),
+            ref_table = sql.Identifier(self.references.table),
             ref_cols = ref_cols
         )
 
