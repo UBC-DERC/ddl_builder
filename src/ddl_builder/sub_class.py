@@ -79,6 +79,29 @@ class Constraint(constraint_dict):
         )
         return clause + sql.SQL(";")
 
+    def fk_alter_table_clause(self, schema: str, table: str) -> sql.Composed:
+        if not self.type.foregn_key:
+            raise ValueError(f"fk_alter cannot be run on a {self.type} constraint.")
+        if not self.reference:
+            raise ValueError(f"The {self.name!r} FOREIGN KEY constraint requires a table/column reference.")
+
+        local_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.columns)
+        ref_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.reference.columns)
+
+        return sql.SQL(
+            "ALTER TABLE {schema}.{table} ADD CONSTRAINT {name} "
+            "FOREIGN KEY ({local_cols}) REFERENCES {ref_schema}.{ref_table} ({ref_cols})"
+        ).format(
+            schema = sql.Identifier(schema),
+            table = sql.Identifier(table),
+            name = sql.Identifier(self.name),
+            local_cols = local_cols,
+            ref_schema = sql.Identifier(self.reference.schema),
+            ref_table = sql.Identifier(self.reference.table),
+            ref_cols = ref_cols
+        )
+
+
 
 class Column(column_dict):
     @model_validator(mode="after")
