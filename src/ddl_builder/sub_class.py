@@ -41,27 +41,34 @@ class Constraint(constraint_dict):
     def constraint_clause(self) -> sql.Composed:
         match self.type:
             case ConstraintType.primary_key:
-                clause: Composed = sql.SQL("CONSTRAINT {} PRIMARY KEY ({})").format(
+                return sql.SQL("CONSTRAINT {} PRIMARY KEY ({})").format(
                     sql.Identifier(self.name),
-                    sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
+                    sql.SQL(", ").join(sql.Identifier(i) for i in self.columns),
                 )
             case ConstraintType.unique:
-                clause: Composed = sql.SQL("CONSTRAINT {} UNIQUE ({})").format(
+                return sql.SQL("CONSTRAINT {} UNIQUE ({})").format(
                     sql.Identifier(self.name),
-                    sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
+                    sql.SQL(", ").join(sql.Identifier(i) for i in self.columns),
                 )
             case ConstraintType.unique_nulls_not_distinct:
-                clause: Composed = sql.SQL("CONSTRAINT {} UNIQUE NULLS NOT DISTINCT ({})").format(
-                                    sql.Identifier(self.name),
-                                    sql.SQL(", ").join([sql.Identifier(i) for i in self.columns]),
-                                )
+                return sql.SQL("CONSTRAINT {} UNIQUE NULLS NOT DISTINCT ({})").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(", ").join(sql.Identifier(i) for i in self.columns),
+                )
+            case ConstraintType.foreign_key:
+                raise ValueError(
+                    "Cannot create an inline constraint clause on a FOREIGN KEY with this package."
+                )
+            case ConstraintType.check | ConstraintType.exclude:
+                if not self.ddl:
+                    raise ValueError(
+                        f"Constraint {self.name!r} of type {self.type} requires a "
+                        "raw 'ddl' field — this type cannot be generated from structured fields."
+                    )
+                ddl_text = self.ddl.strip().rstrip(";")
+                return sql.SQL(ddl_text)
             case _:
-                clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl))
-        if self.ddl and not self.ddl.strip().endswith(";"):
-            clause: Composed = clause + sql.SQL(";")
-        else:
-            clause: Composed = clause + sql.SQL("")
-        return clause
+                raise ValueError(f"Unhandled constraint type: {self.type!r}")
 
     def constraint_comments(self, schema: str, table: str) -> sql.Composed:
         clause: Composed = sql.SQL("COMMENT ON CONSTRAINT {} ON {}.{} IS {}").format(
