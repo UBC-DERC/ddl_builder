@@ -34,7 +34,7 @@ class Constraint(constraint_dict):
 
     @model_validator(mode="after")
     def validate_constraint_dll(self) -> constraint_dict:
-        if (self.type.check or self.type.exclude) and not (self.ddl or self.ddl == ""):
+        if self.type in (ConstraintType.check, ConstraintType.exclude) and not self.ddl:
             raise ValueError("CHECK and EXCLUDE constraints must have a DDL statement.")
         return self
 

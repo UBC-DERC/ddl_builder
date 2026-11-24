@@ -90,8 +90,13 @@ exclude_lines = [
 ]
 fail_under = 80
 
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+explicit = true
+
 [tool.uv.sources]
-ddlml = { git = "https://github.com/UBC-DERC/ddlml", branch = "develop" }
+ddlml = { index = "testpypi" }
 
 [tool.ruff]
 target-version = "py312"
