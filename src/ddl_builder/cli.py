@@ -9,9 +9,11 @@ written, so the tool can gate a deployment pipeline.
 import argparse
 from pathlib import Path
 
+import ddlml
 from yaml import safe_dump
 
 import ddl_builder as dlb
+from ddl_builder.sub_class import D3Database
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -33,8 +35,8 @@ def main(argv: list[str] | None = None) -> int:
 
     yamlPath = Path(args.entry)
 
-    outcome = dlb.read_yaml(yamlPath)
-    newDB = dlb.ddl_from_dict(outcome)
+    outcome = ddlml.load_database(str(object=yamlPath))
+    newDB: D3Database = dlb.ddl_from_dict(model=outcome.database)
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)

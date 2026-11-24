@@ -8,6 +8,7 @@ from ddlml.object_classes import (
     reference_dict,
     schema_dict,
     table_dict,
+    ConstraintType,
 )
 from psycopg import sql
 from psycopg.sql import Composed
@@ -17,13 +18,13 @@ from .pg_type import pg_type
 
 
 class Reference(reference_dict):
-    """Reference - Inherits from ddlml class `reference_dict`."""
+    """Reference - Inherits from data_model class `reference_dict`."""
 
     pass
 
 
 class Constraint(constraint_dict):
-    """Constraint - Inherits from ddlml class `constraint_dict`."""
+    """Constraint - Inherits from data_model class `constraint_dict`."""
 
     @model_validator(mode="after")
     def validate_constraint_name(self) -> constraint_dict:
@@ -33,29 +34,43 @@ class Constraint(constraint_dict):
 
     @model_validator(mode="after")
     def validate_constraint_dll(self) -> constraint_dict:
-        if not self.ddl or self.ddl == "":
-            raise ValueError("Constraint must have a DDL statement.")
+        if (self.type.check or self.type.exclude) and not (self.ddl or self.ddl == ""):
+            raise ValueError("CHECK and EXCLUDE constraints must have a DDL statement.")
         return self
 
     def constraint_clause(self) -> sql.Composed:
-        if not self.ddl:
-            raise ValueError("Constraint must have a DDL statement.")
-        if self.ddl.strip().startswith("ALTER TABLE"):
-            # We are altering the table after creation, not modifying it during creation.
-            # So we need to have a semicolon (if it doesn't already).
-            clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl.rstrip(";")))
-            if self.ddl.strip().endswith(";"):
-                clause: Composed = clause + sql.SQL("")
-            else:
-                clause: Composed = clause + sql.SQL(";")
-        else:
-            # In this case the constraint is being defined inline, so we only use
-            # the semi-colon at the end of processing each of the constraints.
-            clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl.rstrip(";"))) + sql.SQL("")
+        match self.type:
+            case ConstraintType.primary_key:
+                return sql.SQL("CONSTRAINT {} PRIMARY KEY ({})").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(", ").join(sql.Identifier(i) for i in self.columns),
+                )
+            case ConstraintType.unique:
+                return sql.SQL("CONSTRAINT {} UNIQUE ({})").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(", ").join(sql.Identifier(i) for i in self.columns),
+                )
+            case ConstraintType.unique_nulls_not_distinct:
+                return sql.SQL("CONSTRAINT {} UNIQUE NULLS NOT DISTINCT ({})").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(", ").join(sql.Identifier(i) for i in self.columns),
+                )
+            case ConstraintType.foreign_key:
+                raise ValueError(
+                    "Cannot create an inline constraint clause on a FOREIGN KEY with this package."
+                )
+            case ConstraintType.check | ConstraintType.exclude:
+                if not self.ddl:
+                    raise ValueError(
+                        f"Constraint {self.name!r} of type {self.type} requires a "
+                        "raw 'ddl' field — this type cannot be generated from structured fields."
+                    )
+                ddl_text = self.ddl.strip().rstrip(";")
+                return sql.SQL(ddl_text)
+            case _:
+                raise ValueError(f"Unhandled constraint type: {self.type!r}")
 
     def constraint_comments(self, schema: str, table: str) -> sql.Composed:
-        # These always happen after the table is created, and after the constraint
-        # is added.
         clause: Composed = sql.SQL("COMMENT ON CONSTRAINT {} ON {}.{} IS {}").format(
             sql.Identifier(self.name),
             sql.Identifier(schema),
@@ -63,6 +78,31 @@ class Constraint(constraint_dict):
             sql.Literal(self.comment),
         )
         return clause + sql.SQL(";")
+
+    def fk_alter_table_clause(self, schema: str, table: str) -> sql.Composed:
+        if not self.type.foreign_key:
+            raise ValueError(f"fk_alter cannot be run on a {self.type} constraint.")
+        if not self.references:
+            raise ValueError(f"The {self.name!r} FOREIGN KEY constraint requires a table/column reference.")
+
+        local_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.columns)
+        ref_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.references.columns)
+        print(self.references)
+        ref_schema = self.references.schema_ or schema
+
+        return sql.SQL(
+            "ALTER TABLE {schema}.{table} ADD CONSTRAINT {name} "
+            "FOREIGN KEY ({local_cols}) REFERENCES {ref_schema}.{ref_table} ({ref_cols})"
+        ).format(
+            schema = sql.Identifier(schema),
+            table = sql.Identifier(table),
+            name = sql.Identifier(self.name),
+            local_cols = local_cols,
+            ref_schema = sql.Identifier(ref_schema),
+            ref_table = sql.Identifier(self.references.table),
+            ref_cols = ref_cols
+        )
+
 
 
 class Column(column_dict):
@@ -72,7 +112,7 @@ class Column(column_dict):
             raise ValueError("Column must have a comment.")
         return self
 
-    """Column - Inherits from ddlml class `column_dict`."""
+    """Column - Inherits from data_model class `column_dict`."""
 
     def column_clause(
         self, alter: bool = False, table: str | None = None, schema: str | None = None
@@ -101,7 +141,7 @@ class Column(column_dict):
 
 
 class Index(index_dict):
-    """Index - Inherits from ddlml class `index_dict`."""
+    """Index - Inherits from data_model class `index_dict`."""
 
     def index_clause(self) -> sql.Composed:
         clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL("\n")
@@ -113,7 +153,7 @@ class Index(index_dict):
 
 
 class Table(table_dict):
-    """Table - Inherits from ddlml class `table_dict`."""
+    """Table - Inherits from data_model class `table_dict`."""
 
     columns: list[Column] = []
     constraints: list[Constraint] = []
@@ -133,20 +173,8 @@ class Table(table_dict):
         # Note that we are not adding a comma before the first constraint,
         # because the last column already has a comma.
         if self.constraints and len(self.constraints) > 0:
-            clause_add: list[Composed] = []
-            clause_append: list[Composed] = []
-            for c in self.constraints:
-                if not c.ddl:
-                    raise ValueError(f"Constraint {c.name} must have a DDL statement.")
-                if c.ddl.strip().startswith("ALTER TABLE"):
-                    # This is an "after the fact" constraint, so we don't add it here.
-                    clause_append.append(c.constraint_clause())
-                else:
-                    # This is an inline constraint, so we add it here.
-                    clause_add.append(c.constraint_clause())
-            for i in clause_add[:-1]:
-                clause: Composed = clause + i + sql.SQL(",\n\t")
-
+            for i in self.constraints:
+                clause: Composed = clause + sql.SQL(",\n\t") + i.constraint_clause()
         return clause + sql.SQL(obj="\n\t);")
 
     def table_comments(self, schema: str) -> sql.Composed:
@@ -157,7 +185,7 @@ class Table(table_dict):
 
 
 class Schema(schema_dict):
-    """Schema - Inherits from ddlml class `schema_dict`."""
+    """Schema - Inherits from data_model class `schema_dict`."""
 
     tables: list[Table] = []
 

@@ -1,6 +1,6 @@
 import pytest
 
-from ddl_builder import Column, Index, Table, Constraint
+from ddl_builder import Column, Index, Table, Constraint, Reference
 
 @pytest.fixture
 def single_column():

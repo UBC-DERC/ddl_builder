@@ -1,4 +1,3 @@
-from .load_yaml import DDL_Dict
 from .sub_class import D3Database
 
 

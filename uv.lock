@@ -368,8 +368,8 @@ dev = [
 
 [[package]]
 name = "ddlml"
-version = "2026.10.0a1"
-source = { git = "https://github.com/UBC-DERC/ddlml?branch=develop#f6c7db47ae7ebc98933da82f3134206b5f7c3471" }
+version = "2026.12.0b1.dev2"
+source = { git = "https://github.com/UBC-DERC/ddlml?branch=develop#04b01bb52650df49ad3ad734ed45058d48d2eb3f" }
 dependencies = [
     { name = "py-markdown-table" },
     { name = "pydantic" },
