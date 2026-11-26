@@ -5,6 +5,7 @@ package so callers can use ``from ddl_builder import Schema`` instead of reachin
 into submodules. Anything not listed in ``__all__`` is considered internal.
 """
 
+from .assemble import render_script
 from .build_ddl import ddl_from_dict
 from .cli import main
 from .read_files import read_files
@@ -34,4 +35,5 @@ __all__ = [
     "main",
     "read_files",
     "read_yaml",
+    "render_script",
 ]
