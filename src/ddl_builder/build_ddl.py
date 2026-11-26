@@ -1,5 +1,6 @@
-from .sub_class import D3Database
 from ddlml.object_classes import DDL_Dict
+
+from .sub_class import D3Database
 
 
 def ddl_from_dict(model: DDL_Dict) -> D3Database:

@@ -381,7 +381,7 @@ dev = [
 
 [[package]]
 name = "ddlml"
-version = "2026.12.0b1.dev3"
+version = "2026.12.0b1.dev4"
 source = { registry = "https://test.pypi.org/simple/" }
 dependencies = [
     { name = "py-markdown-table" },
@@ -389,9 +389,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "validators" },
 ]
-sdist = { url = "https://test-files.pythonhosted.org/packages/79/cc/ecb13e4f7338f482b1fef954282d8fb05c0095594f082d57dcff76775b05/ddlml-2026.12.0b1.dev3.tar.gz", hash = "sha256:ecaab012d4d2af7fb3dc2a3880dbc913102572809b61039922e9ab4f7b899593", size = 19555, upload-time = "2026-11-24T20:57:56.819Z" }
+sdist = { url = "https://test-files.pythonhosted.org/packages/8a/46/958710257ff54bf2ff93f1b25336ffd5aff9a30f616d0ce034d7a0b016aa/ddlml-2026.12.0b1.dev4.tar.gz", hash = "sha256:71c4b1cfb4b65b9810d33ac0ae53aace202408fb81d13cdfe0176b4e4bb1a4f4", size = 19807, upload-time = "2026-11-26T17:38:56.995Z" }
 wheels = [
-    { url = "https://test-files.pythonhosted.org/packages/fc/36/59b9c595d188f3340da79d730f622a19a82278df36e13602d656c4c854ed/ddlml-2026.12.0b1.dev3-py3-none-any.whl", hash = "sha256:5ce90d50507f778665441a9dbd14f69f4cf2b265cdc1d05ff5ae9fc46380e80e", size = 22932, upload-time = "2026-11-24T20:57:55.612Z" },
+    { url = "https://test-files.pythonhosted.org/packages/1d/38/751875b6bd927f5b7c1f2f6cd3183aa0ebdcc16b7dc254e2da184b496bd3/ddlml-2026.12.0b1.dev4-py3-none-any.whl", hash = "sha256:ce851860bb3bb861e5ce2ec6f3167dc4529b6c11fd2bdf8f97e6f7d9580f51aa", size = 23183, upload-time = "2026-11-26T17:38:56.162Z" },
 ]
 
 [[package]]
