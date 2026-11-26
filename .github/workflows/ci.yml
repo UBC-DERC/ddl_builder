@@ -33,8 +33,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v2
+        with:
+          python-version: ${{ matrix.python-version }}
       - run: uv sync --all-extras
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest --cov=ddl_builder --cov-report=xml
+      - name: Generate the SQL for the test model
+        run: >-
+          uv run ddl-builder tests/models/farm.yaml
+          --output "$RUNNER_TEMP/farm.yaml"
+          --docs "$RUNNER_TEMP/docs"
+          --sql "$RUNNER_TEMP/farm.sql"
+      - name: Run the SQL on an empty database
+        env:
+          PGHOST: localhost
+          PGUSER: ddlb
+          PGPASSWORD: ddlb
+        run: |
+          createdb farm
+          psql -d farm -v ON_ERROR_STOP=1 --single-transaction -f "$RUNNER_TEMP/farm.sql"
       - uses: codecov/codecov-action@v4
