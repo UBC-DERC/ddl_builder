@@ -304,7 +304,7 @@ schemas:
       default: null
       name: url
       nullable: true
-      type: url
+      type: text
     - comment: The url mask is intended to show how the identifers should be used.
         The mask will be based on the resource itself. For example, ORCID indicates
         that its identifiers should be written as `https://orcid.org/0000-0000-0000-0000`,
