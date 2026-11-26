@@ -1,20 +1,33 @@
+import re
 from typing import LiteralString, cast
 
 from ddlml.object_classes import (
+    ConstraintType,
     DDL_Dict,
+    OnChangeType,
     column_dict,
     constraint_dict,
     index_dict,
     reference_dict,
     schema_dict,
     table_dict,
-    ConstraintType,
 )
 from psycopg import sql
 from psycopg.sql import Composed
 from pydantic import model_validator
 
 from .pg_type import pg_type
+
+# Making sure we have a fixed set of reference types for fks.
+_REFERENTIAL_ACTIONS: dict[OnChangeType, LiteralString] = {
+    OnChangeType.no_action: "NO ACTION",
+    OnChangeType.restrict: "RESTRICT",
+    OnChangeType.cascade: "CASCADE",
+    OnChangeType.set_null: "SET NULL",
+    OnChangeType.set_default: "SET DEFAULT",
+}
+
+_CONSTRAINT = re.compile(pattern=r'^\s*CONSTRAINT\s+("?)([^"\s]+)\1\s+', flags=re.IGNORECASE)
 
 
 class Reference(reference_dict):
@@ -60,14 +73,35 @@ class Constraint(constraint_dict):
                     "Cannot create an inline constraint clause on a FOREIGN KEY with this package."
                 )
             case ConstraintType.check | ConstraintType.exclude:
+                # These cases are a bit more complicated because it's difficult to generate the
+                # different DDL clauses (greater than, less than, regex, whatever) in a way that
+                # can pre-validate them. Once we decide we're accepting DDL, then we also have to
+                # make sure it's structured in a way we want it.
                 if not self.ddl:
                     raise ValueError(
                         f"Constraint {self.name!r} of type {self.type} requires a "
                         "raw 'ddl' field — this type cannot be generated from structured fields."
                     )
-                ddl_text = self.ddl.strip().rstrip(";")
-                return sql.SQL(ddl_text)
+                # So check, using regex, to see if it starts with a range of `CONSTRAINT` prefixes
+                # There's an extra strip in there just in case the ddl ends with ` ;`.
+                cleanddl: str = self.ddl.strip().rstrip(";").strip()
+
+                if match := _CONSTRAINT.match(string=cleanddl):
+                    # Check the use of self.name when we have `CONSTRAINT`:
+                    if match.group(2).lower() != self.name.lower():
+                        raise ValueError(
+                            f"Constraint {self.name!r}: the 'ddl' names a different "
+                            f"constraint ({match.group(2)!r})."
+                        )
+                    cleanddl = cleanddl[match.end() :]
+                return sql.SQL(obj="CONSTRAINT {} {}").format(
+                    sql.Identifier(self.name),
+                    sql.SQL(obj=cast(typ=LiteralString, val=cleanddl)),
+                )
             case _:
+                # This does not really get called, because we have a strict definition
+                # around which constraints we have, but it's here because if I add one and
+                # accidentally don't do anything with it, we'll get the error.
                 raise ValueError(f"Unhandled constraint type: {self.type!r}")
 
     def constraint_comments(self, schema: str, table: str) -> sql.Composed:
@@ -80,29 +114,43 @@ class Constraint(constraint_dict):
         return clause + sql.SQL(";")
 
     def fk_alter_table_clause(self, schema: str, table: str) -> sql.Composed:
-        if not self.type.foreign_key:
+        if self.type != ConstraintType.foreign_key:
             raise ValueError(f"fk_alter cannot be run on a {self.type} constraint.")
         if not self.references:
-            raise ValueError(f"The {self.name!r} FOREIGN KEY constraint requires a table/column reference.")
+            raise ValueError(
+                f"The {self.name!r} FOREIGN KEY constraint requires a table/column reference."
+            )
+        if self.references.table is None:
+            raise ValueError(f"There is no table name provided for {self.name}, check the ddlml.")
 
         local_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.columns)
         ref_cols = sql.SQL(", ").join(sql.Identifier(i) for i in self.references.columns)
-        print(self.references)
+
         ref_schema = self.references.schema_ or schema
 
-        return sql.SQL(
+        clause: Composed = sql.SQL(
             "ALTER TABLE {schema}.{table} ADD CONSTRAINT {name} "
             "FOREIGN KEY ({local_cols}) REFERENCES {ref_schema}.{ref_table} ({ref_cols})"
         ).format(
-            schema = sql.Identifier(schema),
-            table = sql.Identifier(table),
-            name = sql.Identifier(self.name),
-            local_cols = local_cols,
-            ref_schema = sql.Identifier(ref_schema),
-            ref_table = sql.Identifier(self.references.table),
-            ref_cols = ref_cols
+            schema=sql.Identifier(schema),
+            table=sql.Identifier(table),
+            name=sql.Identifier(self.name),
+            local_cols=local_cols,
+            ref_schema=sql.Identifier(ref_schema),
+            ref_table=sql.Identifier(self.references.table),
+            ref_cols=ref_cols,
         )
 
+        # Change now gives us our ON DELETE and ON UPDATE elements.
+        if self.references.on_delete is not None:
+            clause += sql.SQL(" ON DELETE ") + sql.SQL(
+                _REFERENTIAL_ACTIONS[self.references.on_delete]
+            )
+        if self.references.on_update is not None:
+            clause += sql.SQL(" ON UPDATE ") + sql.SQL(
+                _REFERENTIAL_ACTIONS[self.references.on_update]
+            )
+        return clause
 
 
 class Column(column_dict):
