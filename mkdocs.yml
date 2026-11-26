@@ -1,0 +1,103 @@
+site_name: DERC DDL Builder
+repo_url: https://github.com/UBC-DERC/ddl_builder/
+site_description: |
+  Documentation and guidance for the DERC Dairy Database, including technical build information,
+  data model sources and inspirations, and guidance on modifying the model, proposing new data structures
+  and using the system to build new databases.
+site_author: Simon Goring
+copyright: '2026'
+site_url: https://ubc-derc.github.io/ddl_builder/
+nav:
+  - Introduction: 'index.md'
+  - Database Description:
+    - database/
+  - External Resources: 'resources.md'
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+  locale: en_CA
+  palette:
+    # Light mode (follows the OS preference by default).
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode.
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.prune
+    - navigation.path
+    - navigation.expand
+    - navigation.sections
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+extra_css:
+  - stylesheets/extra.css
+plugins:
+  - mermaid2
+  - include_dir_to_nav:
+      flat: false
+  - mkdocstrings:
+      default_handler: python
+      locale: en
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            merge_init_into_class: true
+  - search:
+      lang: en
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.superfences:
+        # make exceptions to highlighting of code:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: UBC-DERC
+      repo: ddl_builder

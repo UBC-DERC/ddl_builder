@@ -1,0 +1,59 @@
+{#
+  Custom <head> additions for the DERC Data Model docs.
+
+  Material already emits charset/viewport, description, author, canonical,
+  prev/next, icon, generator and title. Here we add:
+
+    * a brand `theme-color` for mobile browser chrome;
+    * Open Graph tags for rich link previews (no Twitter tags by request).
+
+  Per-page values come from the page's front matter (title / description),
+  which the documentation generator writes for every database, schema and
+  table page. Hand-written pages fall back to the site-level values.
+#}
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {# -- Brand colour for the mobile browser UI -- #}
+  <meta name="theme-color" content="#002145">
+
+  {# -- Resolve per-page title/description with sensible fallbacks.
+        `page` can be None (e.g. the generated 404 page), so guard every
+        attribute access rather than relying on the `default` filter. -- #}
+  {% set og_title = (page.title if page and page.title else config.site_name) %}
+  {% set og_description = ((page.meta.description if page and page.meta and page.meta.description else config.site_description) or "") | striptags | trim %}
+  {% set og_url = (page.canonical_url if page and page.canonical_url else config.site_url) %}
+
+  {# -- Open Graph -- #}
+  <meta property="og:type" content="{% if page and page.is_homepage %}website{% else %}article{% endif %}">
+  <meta property="og:title" content="{{ og_title }}">
+  <meta property="og:description" content="{{ og_description }}">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  {% if og_url %}<meta property="og:url" content="{{ og_url }}">{% endif %}
+  <meta property="og:locale" content="en_CA">
+  {# Optional preview image: set `extra.og_image` (absolute URL) in mkdocs.yml,
+     or `image:` in a page's front matter, to enable. Omitted if unset. #}
+  {% set og_image = (page.meta.image if page and page.meta and page.meta.image else config.extra.og_image | default("")) %}
+  {% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}
+
+  {# -- Structured data: helps scholarly crawlers / Google Dataset Search -- #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "name": {{ og_title | tojson }},
+    "description": {{ og_description | tojson }},
+    {% if og_url %}"url": {{ og_url | tojson }},{% endif %}
+    "creator": {
+      "@type": "Person",
+      "name": {{ config.site_author | tojson }}
+    },
+    "funder": {
+      "@type": "Organization",
+      "name": "Farm Credit Canada",
+      "url": "https://www.fcc-fac.ca/"
+    },
+    "isAccessibleForFree": true
+  }
+  </script>
+{% endblock %}
