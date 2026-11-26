@@ -1,0 +1,208 @@
+# A small, fixed model for testing ddl_builder against a real Postgres.
+#
+# It is not a real data model. Each table is here to exercise something the
+# generated SQL has to get right, listed beside it. Change it only to add a
+# case, and keep it small enough to read in one sitting.
+#
+# Needs: Postgres 17 with the contrib extension btree_gist (in the official
+# postgres image). No PostGIS.
+ddlml_version: 2026.11.12
+info:
+  title: ddl_builder test farm
+  summary: A fixed model that covers every kind of object ddl_builder writes.
+  version: 1.0.0
+  license:
+    name: CC0-1.0
+    url: https://creativecommons.org/publicdomain/zero/1.0/
+  contacts:
+    - name: ddl_builder tests
+      email: tests@example.com
+database:
+  name: farm
+  comment: Test database for ddl_builder.
+  # btree_gist lets an EXCLUDE constraint compare a uuid with `=`.
+  extensions:
+    - btree_gist
+  schemas:
+    # Case: a second schema, referenced from the first (cross-schema FOREIGN KEY).
+    - name: buildings
+      comment: Buildings on the farm.
+      tables:
+        # Cases: single-column PRIMARY KEY, UNIQUE, CHECK without a CONSTRAINT
+        # prefix, a NOT NULL column, a column default.
+        - name: barns
+          comment: One row per barn.
+          columns:
+            - name: barnid
+              type: uuid
+              nullable: false
+              default: gen_random_uuid()
+              comment: Barn identifier.
+            - name: barnname
+              type: text
+              nullable: false
+              comment: The barn's name, unique on the farm.
+            - name: capacity
+              type: integer
+              nullable: false
+              default: "0"
+              comment: How many cows the barn holds.
+            - name: built
+              type: date
+              comment: When the barn was built.
+          constraints:
+            - name: barns_pk
+              type: PRIMARY KEY
+              columns: [barnid]
+              comment: Barns are identified by barnid.
+            - name: barns_name_unique
+              type: UNIQUE
+              columns: [barnname]
+              comment: No two barns share a name.
+            - name: barns_capacity_positive
+              type: CHECK
+              columns: [capacity]
+              ddl: CHECK (capacity >= 0)
+              comment: Capacity can't be negative.
+        # Cases: composite PRIMARY KEY, FOREIGN KEY with ON DELETE and ON UPDATE.
+        - name: pens
+          comment: Pens inside a barn.
+          columns:
+            - name: barnid
+              type: uuid
+              nullable: false
+              comment: The barn the pen is in.
+            - name: penid
+              type: smallint
+              nullable: false
+              comment: Pen number within the barn.
+          constraints:
+            - name: pens_pk
+              type: PRIMARY KEY
+              columns: [barnid, penid]
+              comment: A pen is identified by its barn and its number.
+            - name: pens_barn_fk
+              type: FOREIGN KEY
+              columns: [barnid]
+              references:
+                table: barns
+                columns: [barnid]
+                on_delete: CASCADE
+                on_update: CASCADE
+              comment: Pens go when their barn goes.
+          indexes:
+            - name: pens_penid_idx
+              columns: [penid]
+              ddl: CREATE INDEX pens_penid_idx ON buildings.pens (penid)
+              comment: Look up pens by number across barns.
+    - name: herd
+      comment: The animals.
+      tables:
+        # Cases: UNIQUE NULLS NOT DISTINCT, CHECK with a quoted CONSTRAINT prefix,
+        # a self-referencing FOREIGN KEY with ON DELETE SET NULL, a composite
+        # cross-schema FOREIGN KEY, array and jsonb columns, an index.
+        - name: cows
+          comment: One row per cow.
+          columns:
+            - name: cowid
+              type: uuid
+              nullable: false
+              default: gen_random_uuid()
+              comment: Cow identifier.
+            - name: eartag
+              type: char(8)
+              comment: Ear tag; at most one cow without a tag.
+            - name: born
+              type: timestamptz
+              nullable: false
+              comment: Date and time of birth.
+            - name: damid
+              type: uuid
+              comment: The cow's mother, if she is in the herd.
+            - name: barnid
+              type: uuid
+              comment: Current barn.
+            - name: penid
+              type: smallint
+              comment: Current pen.
+            - name: nicknames
+              type: text[]
+              comment: Names the staff use.
+            - name: extra
+              type: jsonb
+              comment: Anything else.
+          constraints:
+            - name: cows_pk
+              type: PRIMARY KEY
+              columns: [cowid]
+              comment: Cows are identified by cowid.
+            - name: cows_eartag_unique
+              type: UNIQUE NULLS NOT DISTINCT
+              columns: [eartag]
+              comment: Ear tags are unique, and only one cow can lack one.
+            - name: cows_not_own_dam
+              type: CHECK
+              columns: [cowid, damid]
+              ddl: CONSTRAINT "cows_not_own_dam" CHECK (damid IS DISTINCT FROM cowid)
+              comment: A cow can't be her own mother.
+            - name: cows_dam_fk
+              type: FOREIGN KEY
+              columns: [damid]
+              references:
+                table: cows
+                columns: [cowid]
+                on_delete: SET NULL
+              comment: Losing the dam's record keeps the calf.
+            - name: cows_pen_fk
+              type: FOREIGN KEY
+              columns: [barnid, penid]
+              references:
+                schema: buildings
+                table: pens
+                columns: [barnid, penid]
+              comment: The pen the cow is in.
+          indexes:
+            - name: cows_born_idx
+              columns: [born]
+              ddl: CREATE INDEX cows_born_idx ON herd.cows (born)
+              comment: Find cows by age.
+        # Cases: EXCLUDE (needs btree_gist), a FOREIGN KEY with no actions.
+        - name: pen_stays
+          comment: Which pen a cow was in, and when.
+          columns:
+            - name: cowid
+              type: uuid
+              nullable: false
+              comment: The cow.
+            - name: barnid
+              type: uuid
+              nullable: false
+              comment: The barn.
+            - name: penid
+              type: smallint
+              nullable: false
+              comment: The pen.
+            - name: arrived
+              type: timestamptz
+              nullable: false
+              comment: Start of the stay.
+            - name: departed
+              type: timestamptz
+              comment: End of the stay; empty while the cow is still there.
+          constraints:
+            - name: pen_stays_pk
+              type: PRIMARY KEY
+              columns: [cowid, arrived]
+              comment: One stay per cow per start time.
+            - name: pen_stays_no_overlap
+              type: EXCLUDE
+              columns: [cowid, arrived, departed]
+              ddl: EXCLUDE USING gist (cowid WITH =, tstzrange(arrived, departed) WITH &&)
+              comment: A cow can't be in two pens at once.
+            - name: pen_stays_cow_fk
+              type: FOREIGN KEY
+              columns: [cowid]
+              references:
+                table: cows
+                columns: [cowid]
+              comment: The cow must exist.
