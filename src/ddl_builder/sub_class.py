@@ -191,12 +191,17 @@ class Column(column_dict):
 class Index(index_dict):
     """Index - Inherits from data_model class `index_dict`."""
 
-    def index_clause(self) -> sql.Composed:
-        clause = sql.SQL(obj=cast(typ=LiteralString, val=self.ddl)) + sql.SQL("\n")
-        if self.comment and self.comment != "":
-            clause = clause + sql.SQL("COMMENT ON INDEX {} IS {}").format(
-                sql.Identifier(self.name), sql.Literal(self.comment)
-            )
+    def index_clause(self) -> sql.SQL:
+        if self.ddl is None:
+            raise ValueError(f"The index {self.name} requires a DDL field.")
+        ddl_clean: str = self.ddl.strip().rstrip(";").strip()
+        clause = sql.SQL(obj=cast(typ=LiteralString, val=ddl_clean))
+        return clause
+
+    def index_comments(self, schema: str) -> sql.Composed:
+        clause = sql.SQL("COMMENT ON INDEX {}.{} IS {}").format(
+            sql.Identifier(schema), sql.Identifier(self.name), sql.Literal(self.comment)
+        )
         return clause
 
 
@@ -222,6 +227,9 @@ class Table(table_dict):
         # because the last column already has a comma.
         if self.constraints and len(self.constraints) > 0:
             for i in self.constraints:
+                # We add the foreign keys later.
+                if i.type == ConstraintType.foreign_key:
+                    continue
                 clause: Composed = clause + sql.SQL(",\n\t") + i.constraint_clause()
         return clause + sql.SQL(obj="\n\t);")
 
